@@ -52,7 +52,7 @@ const T = TEXTOS[LANG];
 // ---------- métricas (GoatCounter) ----------
 
 // código de xxx.goatcounter.com; vazio = sem métricas (nada é enviado)
-const GOATCOUNTER = "";
+const GOATCOUNTER = "lucaskiyoshi";
 
 const filaEventos = [];
 
