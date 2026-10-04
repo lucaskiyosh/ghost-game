@@ -49,6 +49,40 @@ const TEXTOS = {
 };
 const T = TEXTOS[LANG];
 
+// ---------- métricas (GoatCounter) ----------
+
+// código de xxx.goatcounter.com; vazio = sem métricas (nada é enviado)
+const GOATCOUNTER = "";
+
+const filaEventos = [];
+
+function evento(nome) {
+    if (!GOATCOUNTER) return;
+    const dados = { path: `${LANG}/${nome}`, title: nome, event: true };
+    try {
+        if (window.goatcounter && window.goatcounter.count) window.goatcounter.count(dados);
+        else filaEventos.push(dados);
+    } catch (e) {}
+}
+
+if (GOATCOUNTER) {
+    // conta a visita sozinho; em localhost o count.js não envia nada
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = "//gc.zgo.at/count.js";
+    s.dataset.goatcounter = `https://${GOATCOUNTER}.goatcounter.com/count`;
+    s.onload = () => {
+        try { while (filaEventos.length) window.goatcounter.count(filaEventos.shift()); } catch (e) {}
+    };
+    document.head.append(s);
+    document.addEventListener("DOMContentLoaded", () => {
+        const aviso = document.getElementById("aviso-metricas");
+        if (aviso) aviso.hidden = false;
+    });
+}
+
+const nivelAtual = () => document.getElementById("nivel").value;
+
 let engine;
 let prefix = "";
 let autor = [];        // quem jogou cada letra do prefixo: "voce" ou "ia"
@@ -108,7 +142,7 @@ var Module = {
         el("nivel").value = nivelSalvo();
         aplicarNivel(el("nivel").value);
         novoJogo();
-        if (!guiaJaVisto()) abrirGuia();
+        if (!guiaJaVisto()) abrirGuia(true);
         carregarExtras();
     }
 };
@@ -197,7 +231,9 @@ document.addEventListener("keydown", (e) => {
 
 // ---------- jogo ----------
 
-function encerrar(msg) {
+// resultado ("vitoria"/"derrota") e motivo vão para as métricas
+function encerrar(msg, resultado, motivo) {
+    evento(`fim/${resultado}/${motivo}/${nivelAtual()}`);
     fim = true;
     defendendo = false;
     pendente = "";
@@ -231,15 +267,19 @@ function jogar(letra) {
     if (fim || defendendo || !letra) return;
 
     pendente = "";
+    if (prefix === "") evento(`partida/inicio/${nivelAtual()}`);
+    const antesValido = engine.check(prefix) !== Module.WordState.invalido;
     acrescentar(letra, "voce");
+    if (antesValido && engine.check(prefix) === Module.WordState.invalido) evento("blefe/jogador");
     if (completou()) {
-        return encerrar(T.voceCompletou(prefix));
+        return encerrar(T.voceCompletou(prefix), "derrota", "voce-completou");
     }
     vezDaIA();
 }
 
 function vezDaIA() {
     if (engine.challenge(prefix)) {
+        evento("desafio/ia");
         defendendo = true;
         pendente = "";
         status = T.iaDesafiou(prefix);
@@ -248,12 +288,14 @@ function vezDaIA() {
 
     const lance = engine.best_move(prefix);
     if (lance === "") {
-        return encerrar(T.iaDesistiu(prefix));
+        return encerrar(T.iaDesistiu(prefix), "vitoria", "ia-desistiu");
     }
 
+    const antesValido = engine.check(prefix) !== Module.WordState.invalido;
     acrescentar(lance, "ia");
+    if (antesValido && engine.check(prefix) === Module.WordState.invalido) evento("blefe/ia");
     if (completou()) {
-        return encerrar(T.iaCompletou(prefix));
+        return encerrar(T.iaCompletou(prefix), "vitoria", "ia-completou");
     }
     status = T.iaJogou(lance);
     render();
@@ -264,22 +306,23 @@ function defender(palavra) {
 
     if (engine.check(palavra) === Module.WordState.completo) {
         revelada = palavra;
-        return encerrar(T.defesaValeu(palavra));
+        return encerrar(T.defesaValeu(palavra), "vitoria", "defesa-valeu");
     }
     recusada = palavra;
     revelada = engine.reveal_word(prefix);
     encerrar(revelada
         ? T.defesaFalhouComExemplo(palavra, revelada)
-        : T.defesaFalhouBlefe(palavra));
+        : T.defesaFalhouBlefe(palavra), "derrota", "defesa-falhou");
 }
 
 function desafiar() {
     if (fim || defendendo || prefix === "") return;
+    evento("desafio/jogador");
     revelada = engine.reveal_word(prefix);
     if (revelada) {
-        encerrar(T.iaMostrou(revelada));
+        encerrar(T.iaMostrou(revelada), "derrota", "desafio-ia-mostrou");
     } else {
-        encerrar(T.eraBlefe(prefix));
+        encerrar(T.eraBlefe(prefix), "vitoria", "desafio-era-blefe");
     }
 }
 
@@ -326,6 +369,7 @@ async function adicionarRecusada() {
     if (r.ok) {
         revelada = palavra;
         status = T.agoraVale(palavra);
+        evento(`fim/vitoria/agora-vale/${nivelAtual()}`);
     } else {
         status = T.continuaPerdeu(r.motivo);
     }
@@ -365,13 +409,19 @@ el("novo").addEventListener("click", () => {
 });
 
 el("nivel").addEventListener("change", (e) => {
+    evento(`nivel/${e.target.value}`);
     if (engine) aplicarNivel(e.target.value);
+});
+
+document.querySelector("a.idioma").addEventListener("click", () => {
+    evento(`idioma/para-${LANG === "pt" ? "en" : "pt"}`);
 });
 
 // ---------- guia (como jogar) ----------
 
 const passos = Array.from(document.querySelectorAll("#regras .passo"));
 let passo = 0;
+let guiaConcluido = false;
 
 function mostrarPasso(i) {
     passo = i;
@@ -382,7 +432,9 @@ function mostrarPasso(i) {
     document.querySelectorAll("#regras .pontos span").forEach((s, j) => s.classList.toggle("atual", j === i));
 }
 
-function abrirGuia() {
+function abrirGuia(auto = false) {
+    evento(auto ? "guia/abriu-auto" : "guia/abriu-manual");
+    guiaConcluido = false;
     mostrarPasso(0);
     el("regras").showModal();
 }
@@ -400,10 +452,17 @@ for (let i = 0; i < passos.length; i++) el("regras").querySelector(".pontos").ap
 
 el("guia-voltar").addEventListener("click", () => mostrarPasso(Math.max(passo - 1, 0)));
 el("guia-proximo").addEventListener("click", () => {
-    if (passo === passos.length - 1) el("regras").close();
-    else mostrarPasso(passo + 1);
+    if (passo === passos.length - 1) {
+        guiaConcluido = true;
+        el("regras").close();
+    } else {
+        mostrarPasso(passo + 1);
+    }
+});
+el("regras").addEventListener("close", () => {
+    evento(guiaConcluido ? "guia/concluido" : `guia/fechou-no-passo-${passo + 1}`);
 });
 // clicar fora do cartão fecha
 el("regras").addEventListener("click", (e) => { if (e.target === el("regras")) el("regras").close(); });
 
-el("abrir-regras").addEventListener("click", abrirGuia);
+el("abrir-regras").addEventListener("click", () => abrirGuia(false));

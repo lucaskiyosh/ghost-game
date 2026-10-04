@@ -27,3 +27,18 @@ python3 -m http.server -d docs 8000      # abrir http://localhost:8000
 ```
 
 Dicionários: `make palavras` / `make trie` (PT, precisa de hunspell-pt-br) e `make words-en` / `make trie-en` (EN, precisa de wamerican). Os arquivos de `docs/` são versionados porque o GitHub Pages publica direto dessa pasta: rode `make wasm` antes de commitar mudanças no motor ou nos dicionários.
+
+## Métricas
+
+Opcionais, via [GoatCounter](https://www.goatcounter.com) (grátis, sem cookies). Ficam desligadas enquanto `GOATCOUNTER` estiver vazio em `docs/main.js`. Para ativar, crie a conta, coloque o código (o `xxx` de `xxx.goatcounter.com`) nessa constante e publique.
+
+Além das visitas, o jogo envia eventos com prefixo `pt/` ou `en/`:
+
+| Evento | Quando |
+|---|---|
+| `partida/inicio/<nível>` | primeira letra de uma partida |
+| `fim/<vitoria\|derrota>/<motivo>/<nível>` | fim da partida (`voce-completou`, `ia-completou`, `ia-desistiu`, `desafio-ia-mostrou`, `desafio-era-blefe`, `defesa-valeu`, `defesa-falhou`) |
+| `blefe/ia`, `blefe/jogador` | uma letra tornou o prefixo inválido |
+| `desafio/jogador`, `desafio/ia` | alguém desafiou |
+| `guia/abriu-auto`, `guia/abriu-manual`, `guia/concluido`, `guia/fechou-no-passo-<n>` | uso do guia |
+| `nivel/<nível>`, `idioma/para-<en\|pt>` | trocas de nível e idioma |
