@@ -1,0 +1,201 @@
+:root {
+    --fundo: #6e5c62;
+    --borda: #4c4347;
+    --escuro: #312a2c;
+    --ia: #3aa394;
+    --voce: #d3ad69;
+    --texto: #fafafa;
+    --tile: 3.6rem;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+    margin: 0;
+    background: var(--fundo);
+    color: var(--texto);
+    font-family: "Mitr", system-ui, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    -webkit-tap-highlight-color: transparent;
+}
+button, select { font: inherit; color: inherit; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--voce); outline-offset: 2px; }
+
+/* cabeçalho */
+header {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.75rem 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+}
+h1 {
+    margin: 0 0.5rem;
+    font-size: clamp(1.4rem, 7vw, 2rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.cantos { display: flex; gap: 0.4rem; min-width: 0; }
+.cantos:first-child { justify-self: start; }
+.ajuda {
+    width: 2.2rem; height: 2.2rem;
+    border-radius: 50%;
+    border: 0.125em solid var(--borda);
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+}
+#nivel {
+    justify-self: end;
+    background: var(--borda);
+    border: none;
+    border-radius: 0.4rem;
+    padding: 0.3rem 0.5rem;
+    cursor: pointer;
+}
+
+/* tabuleiro */
+main {
+    flex: 1;
+    width: 100%;
+    max-width: 500px;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+}
+#tiles {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: center;
+    --tile: min(3.6rem, calc((100vw - 2rem) / var(--n, 6) - 0.3rem));
+}
+.tile {
+    width: var(--tile);
+    height: var(--tile);
+    border-radius: 12%;
+    border: 0.125em solid var(--borda);
+    display: grid;
+    place-items: center;
+    font-size: calc(var(--tile) * 0.6);
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: 1;
+}
+.tile.voce { background: var(--voce); border-color: var(--voce); color: var(--escuro); }
+.tile.ia { background: var(--ia); border-color: var(--ia); }
+.tile.revelado { border-style: dashed; border-color: var(--texto); }
+.tile.editando { border-bottom-width: 0.35em; }
+.tile.defesa { border-color: var(--voce); }
+.tile.novo { animation: flip 250ms ease-in; }
+.tile.pulo { animation: pulo 120ms ease-out; }
+@keyframes flip { 0% { transform: rotateX(90deg); } 100% { transform: rotateX(0); } }
+@keyframes pulo { 50% { transform: scale(1.08); } }
+
+#status {
+    min-height: 2.6rem;
+    max-width: 100%;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: var(--escuro);
+    text-align: center;
+    line-height: 1.4;
+}
+.acoes { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+.acoes button {
+    border: none;
+    border-radius: 0.4rem;
+    padding: 0.5rem 1.1rem;
+    background: var(--borda);
+    font-weight: 600;
+    cursor: pointer;
+}
+.acoes #desafiar { background: var(--voce); color: var(--escuro); }
+.acoes button:disabled { opacity: 0.4; cursor: default; }
+
+/* teclado */
+#teclado {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.75rem 0.5rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.linha { display: flex; gap: 0.3rem; justify-content: center; }
+.tecla {
+    flex: 1;
+    max-width: 2.9rem;
+    height: 3.4rem;
+    border: none;
+    border-radius: 0.4rem;
+    background: var(--borda);
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0;
+}
+.tecla.larga { flex: 1.6; max-width: 4.6rem; font-size: 0.85rem; }
+.linha.acentos .tecla { height: 2.6rem; font-size: 1rem; background: var(--escuro); }
+.tecla:active { filter: brightness(1.2); }
+#teclado.desligado .tecla { opacity: 0.4; pointer-events: none; }
+
+/* regras */
+dialog {
+    max-width: min(28rem, calc(100vw - 2rem));
+    border-radius: 0.75rem;
+    background: var(--fundo);
+    border: 0.125em solid var(--borda);
+    color: var(--texto);
+    padding: 1.5rem;
+    line-height: 1.5;
+}
+dialog::backdrop { background: rgb(0 0 0 / 0.5); }
+dialog h2 { margin: 0 0 0.75rem; font-size: 1.3rem; }
+dialog p { margin: 0 0 0.75rem; }
+dialog .exemplo { display: flex; gap: 0.25rem; margin-bottom: 0.75rem; --tile: 2.2rem; }
+dialog input {
+    width: 100%;
+    font: inherit;
+    font-size: 1.1rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: 0.4rem;
+    border: 0.125em solid var(--borda);
+    background: var(--escuro);
+    color: var(--texto);
+    margin-bottom: 0.75rem;
+}
+dialog .linha-botoes { display: flex; gap: 0.5rem; }
+dialog button.secundario { background: var(--borda); }
+#sugestao-resultado { min-height: 1.5rem; }
+dialog button {
+    border: none; border-radius: 0.4rem; padding: 0.5rem 1.1rem;
+    background: var(--ia); font-weight: 600; cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tile.novo, .tile.pulo { animation: none; }
+}
+
+/* idioma */
+.cantos:last-child { justify-self: end; align-items: center; }
+.idioma {
+    background: var(--borda);
+    border-radius: 0.4rem;
+    padding: 0.3rem 0.55rem;
+    color: var(--texto);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* celular: cabeçalho mais compacto para o título não encostar no seletor */
+@media (max-width: 480px) {
+    h1 { font-size: 1.4rem; }
+    #nivel, .idioma { font-size: 0.85rem; padding: 0.25rem 0.4rem; }
+}

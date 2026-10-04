@@ -27,6 +27,13 @@ aplicação:
     L server.py valida com hunspell pt-BR e grava em data/palavras_extras.txt
     L o jogo carrega as extras ao abrir (engine.add_word); make trie as incorpora de vez
 
+versão em inglês (docs/en/):
+    L dicionário: en_50k (hermitdave/FrequencyWords) ∩ /usr/share/dict/american-english, 4+ letras, com vogal
+        L make words-en (gera data/words_en.txt) → make trie-en (data/dictionary_en.trie)
+    L make wasm gera os dois bundles; o en empacota dictionary_en.trie no mesmo caminho virtual
+    L docs/main.js é compartilhado: textos em TEXTOS[LANG], LANG vem do <html lang>
+    L alfabeto (e os blefes) vêm do dicionário carregado, então não aparece "ç" em inglês
+
 dicionário: make trie (filtra data/palavras.txt e gera data/dicionario.trie)
     L testes: make test && ./test
 

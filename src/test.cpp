@@ -1,4 +1,5 @@
 #include "ghost_engine.h"
+#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -165,6 +166,39 @@ int main() {
     esperar(!engine.add_word("abc"), "add_word(abc) == false (curta)");
     esperar(!engine.best_move("gêi").empty(), "best_move(gêi) devolve letra");
     esperar(engine.reveal_word("abelh") == "abelhas", "reveal_word(abelh) continua certo depois de inserir");
+
+    // o alfabeto vem do dicionário
+    const auto& alfabeto_pt = engine.alphabet();
+    esperar(std::find(alfabeto_pt.begin(), alfabeto_pt.end(), "ç") != alfabeto_pt.end(),
+            "alfabeto PT contém 'ç' (" + std::to_string(alfabeto_pt.size()) + " letras)");
+
+    // dicionário em inglês
+    ghost_engine en("data/dictionary_en.trie");
+    en.set_seed(7);
+    esperar(en.ready(), "dicionário EN carregado");
+    if (en.ready()) {
+        esperar(en.check("house") == word_state::completo, "EN: check(house) == completo");
+        esperar(en.check("hous") == word_state::incompleto, "EN: check(hous) == incompleto");
+        esperar(en.check("xqz") == word_state::invalido, "EN: check(xqz) == invalido");
+        en.set_creativity(0);
+        std::string lance = en.best_move("hous");
+        esperar(lance != "e", "EN: best_move(hous) != \"e\" (devolveu \"" + lance + "\")");
+
+        bool so_ascii = true;
+        for (const auto& l : en.alphabet()) {
+            if (l.size() != 1 || l[0] < 'a' || l[0] > 'z') so_ascii = false;
+        }
+        esperar(so_ascii && en.alphabet().size() == 26,
+                "EN: alfabeto é a-z (" + std::to_string(en.alphabet().size()) + " letras)");
+
+        en.set_bluff(1.0);
+        bool blefe_ascii = true;
+        for (const auto& p : {"zz", "qx", "abcd"}) {
+            std::string b = en.best_move(p);
+            if (b.size() != 1 || b[0] < 'a' || b[0] > 'z') blefe_ascii = false;
+        }
+        esperar(blefe_ascii, "EN: blefes só usam a-z");
+    }
 
     std::cout << (falhas ? "\nFALHOU: " + std::to_string(falhas) + " teste(s)\n" : "\nTodos os testes passaram\n");
     return falhas ? 1 : 0;

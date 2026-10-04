@@ -3,12 +3,6 @@
 #include <cmath>
 
 namespace {
-    // letras usadas para blefar, das mais comuns às mais raras em português
-    const std::vector<std::string> letras_blefe = {
-        "a", "e", "o", "i", "s", "r", "n", "m", "t", "d", "c", "u", "l",
-        "p", "v", "g", "b", "f", "h", "q", "z", "j", "x", "ç"
-    };
-
     // quantos caracteres UTF-8 existem em s (conta só bytes que não são de continuação)
     int utf8_length(const std::string& s)
     {
@@ -21,16 +15,41 @@ namespace {
 }
 
 
-ghost_engine::ghost_engine()
+ghost_engine::ghost_engine(const std::string& path)
     : rng_(std::random_device{}())
 {
-    if (trie.open("data/dicionario.trie") != 0) {
+    if (trie.open(path.c_str()) != 0) {
         return; // loaded_ continua false; quem usa confere ready()
     }
     trie.restore();
     loaded_ = true;
     next_rank_ = static_cast<int>(trie.num_keys());
     compute_min_rank(0);
+    compute_alphabet();
+}
+
+// letras que aparecem no dicionário, da mais usada para a menos usada;
+// é daqui que saem os blefes, então eles combinam com o idioma carregado
+void ghost_engine::compute_alphabet()
+{
+    std::unordered_map<std::string, int> contagem;
+    std::vector<state> pilha = {{0, 0, ""}};
+    while (!pilha.empty()) {
+        state atual = pilha.back();
+        pilha.pop_back();
+        for (const auto& filho : children(atual, false)) {
+            ++contagem[filho.move];
+            pilha.push_back(filho);
+        }
+    }
+
+    alphabet_.clear();
+    for (const auto& par : contagem) {
+        alphabet_.push_back(par.first);
+    }
+    std::sort(alphabet_.begin(), alphabet_.end(), [&](const auto& a, const auto& b) {
+        return contagem[a] != contagem[b] ? contagem[a] > contagem[b] : a < b;
+    });
 }
 
 bool ghost_engine::add_word(const std::string& word)
@@ -52,6 +71,7 @@ void ghost_engine::ensure_fresh()
     min_rank_.clear();
     memo_.clear();
     compute_min_rank(0);
+    compute_alphabet();
     dirty_ = false;
 }
 
@@ -253,7 +273,7 @@ std::string ghost_engine::bluff_letter(const std::string& prefix)
 {
     // só letras que levam a um prefixo que não começa nenhuma palavra
     std::vector<std::string> candidatas;
-    for (const auto& letra : letras_blefe) {
+    for (const auto& letra : alphabet_) {
         if (check(prefix + letra) == word_state::invalido) {
             candidatas.push_back(letra);
         }

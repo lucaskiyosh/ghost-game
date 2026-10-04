@@ -1,9 +1,60 @@
+// a página em inglês (docs/en/) tem <html lang="en"> e carrega este mesmo arquivo
+const LANG = document.documentElement.lang === "en" ? "en" : "pt";
+
+const TEXTOS = {
+    pt: {
+        carregando: "Carregando dicionário…",
+        erroDicionario: "Erro: não foi possível carregar o dicionário.",
+        suaVez: "Sua vez: digite uma letra e aperte ENTER.",
+        voceCompletou: (p) => `Você completou a palavra "${p}". Você perdeu!`,
+        iaDesafiou: (p) => `A IA te desafiou! Complete uma palavra que comece com "${p}" e aperte ENTER.`,
+        iaDesistiu: (p) => `A IA desistiu em "${p}". Você venceu!`,
+        iaCompletou: (p) => `A IA completou a palavra "${p}". Você venceu!`,
+        iaJogou: (l) => `A IA jogou "${l}". Sua vez.`,
+        defesaValeu: (w) => `"${w}" vale! A IA desafiou errado. Você venceu!`,
+        defesaFalhouComExemplo: (w, ex) => `"${w}" não está no dicionário. Uma palavra válida seria "${ex}". Você perdeu!`,
+        defesaFalhouBlefe: (w) => `"${w}" não está no dicionário. Era blefe mesmo. Você perdeu!`,
+        iaMostrou: (w) => `A IA mostrou "${w}". Não era blefe, você perdeu!`,
+        eraBlefe: (p) => `Nenhuma palavra começa com "${p}": era blefe! Você venceu!`,
+        digitePalavra: "Digite uma palavra.",
+        servidorFora: "Servidor de sugestões indisponível (rode: make serve).",
+        agoraVale: (w) => `Agora "${w}" vale! A IA desafiou errado. Você venceu!`,
+        continuaPerdeu: (motivo) => `${motivo} O resultado continua: você perdeu.`,
+        conferindo: "Conferindo…",
+        entrou: (w) => `"${w}" entrou no dicionário. Obrigado!`,
+        apagar: "apagar",
+    },
+    en: {
+        carregando: "Loading dictionary…",
+        erroDicionario: "Error: the dictionary could not be loaded.",
+        suaVez: "Your turn: type a letter and press ENTER.",
+        voceCompletou: (p) => `You completed the word "${p}". You lose!`,
+        iaDesafiou: (p) => `The AI challenged you! Finish a word that starts with "${p}" and press ENTER.`,
+        iaDesistiu: (p) => `The AI gave up at "${p}". You win!`,
+        iaCompletou: (p) => `The AI completed the word "${p}". You win!`,
+        iaJogou: (l) => `The AI played "${l}". Your turn.`,
+        defesaValeu: (w) => `"${w}" counts! The AI's challenge was wrong. You win!`,
+        defesaFalhouComExemplo: (w, ex) => `"${w}" isn't in the dictionary. A valid word would be "${ex}". You lose!`,
+        defesaFalhouBlefe: (w) => `"${w}" isn't in the dictionary. It really was a bluff. You lose!`,
+        iaMostrou: (w) => `The AI showed "${w}". It wasn't a bluff, you lose!`,
+        eraBlefe: (p) => `No word starts with "${p}": it was a bluff! You win!`,
+        digitePalavra: "Type a word.",
+        servidorFora: "Suggestion server unavailable.",
+        agoraVale: (w) => `"${w}" counts now! The AI's challenge was wrong. You win!`,
+        continuaPerdeu: (motivo) => `${motivo} The result stands: you lose.`,
+        conferindo: "Checking…",
+        entrou: (w) => `"${w}" was added to the dictionary. Thanks!`,
+        apagar: "delete",
+    },
+};
+const T = TEXTOS[LANG];
+
 let engine;
 let prefix = "";
 let autor = [];        // quem jogou cada letra do prefixo: "voce" ou "ia"
 let pendente = "";     // o que você digitou e ainda não confirmou com ENTER
 let revelada = "";     // palavra mostrada num desafio, exibida no fim do jogo
-let status = "Carregando dicionário…";
+let status = T.carregando;
 let fim = true;
 let defendendo = false; // a IA desafiou e esperamos sua palavra
 let desenhados = 0;    // quantos tiles confirmados já foram animados
@@ -24,9 +75,9 @@ const LINHAS = [
     ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
     ["a", "s", "d", "f", "g", "h", "j", "k", "l", "⌫"],
     ["z", "x", "c", "v", "b", "n", "m", "enter"],
-    ["á", "â", "ã", "é", "ê", "í", "ó", "ô", "õ", "ú", "ç"],
 ];
-const LETRA = /^[a-zà-öø-ÿ]$/;
+if (LANG === "pt") LINHAS.push(["á", "â", "ã", "é", "ê", "í", "ó", "ô", "õ", "ú", "ç"]);
+const LETRA = LANG === "pt" ? /^[a-zà-öø-ÿ]$/ : /^[a-z]$/;
 
 function nivelSalvo() {
     try {
@@ -51,7 +102,7 @@ var Module = {
     onRuntimeInitialized() {
         engine = new Module.GhostEngine();
         if (!engine.ready()) {
-            status = "Erro: não foi possível carregar o dicionário.";
+            status = T.erroDicionario;
             return render();
         }
         el("nivel").value = nivelSalvo();
@@ -107,7 +158,7 @@ function montarTeclado() {
             const b = document.createElement("button");
             b.className = "tecla" + (k.length > 1 || k === "⌫" ? " larga" : "");
             b.textContent = k;
-            b.setAttribute("aria-label", k === "⌫" ? "apagar" : k);
+            b.setAttribute("aria-label", k === "⌫" ? T.apagar : k);
             b.addEventListener("click", () => tecla(k));
             // não deixa a tecla virtual roubar o foco (senão ENTER do teclado físico a aciona)
             b.addEventListener("mousedown", (e) => e.preventDefault());
@@ -162,7 +213,7 @@ function novoJogo() {
     desenhados = 0;
     fim = false;
     defendendo = false;
-    status = "Sua vez: digite uma letra e aperte ENTER.";
+    status = T.suaVez;
     render();
 }
 
@@ -181,7 +232,7 @@ function jogar(letra) {
     pendente = "";
     acrescentar(letra, "voce");
     if (completou()) {
-        return encerrar(`Você completou a palavra "${prefix}". Você perdeu!`);
+        return encerrar(T.voceCompletou(prefix));
     }
     vezDaIA();
 }
@@ -190,20 +241,20 @@ function vezDaIA() {
     if (engine.challenge(prefix)) {
         defendendo = true;
         pendente = "";
-        status = `A IA te desafiou! Complete uma palavra que comece com "${prefix}" e aperte ENTER.`;
+        status = T.iaDesafiou(prefix);
         return render();
     }
 
     const lance = engine.best_move(prefix);
     if (lance === "") {
-        return encerrar(`A IA desistiu em "${prefix}". Você venceu!`);
+        return encerrar(T.iaDesistiu(prefix));
     }
 
     acrescentar(lance, "ia");
     if (completou()) {
-        return encerrar(`A IA completou a palavra "${prefix}". Você venceu!`);
+        return encerrar(T.iaCompletou(prefix));
     }
-    status = `A IA jogou "${lance}". Sua vez.`;
+    status = T.iaJogou(lance);
     render();
 }
 
@@ -212,30 +263,31 @@ function defender(palavra) {
 
     if (engine.check(palavra) === Module.WordState.completo) {
         revelada = palavra;
-        return encerrar(`"${palavra}" vale! A IA desafiou errado. Você venceu!`);
+        return encerrar(T.defesaValeu(palavra));
     }
     recusada = palavra;
     revelada = engine.reveal_word(prefix);
     encerrar(revelada
-        ? `"${palavra}" não está no dicionário. Uma palavra válida seria "${revelada}". Você perdeu!`
-        : `"${palavra}" não está no dicionário. Era blefe mesmo. Você perdeu!`);
+        ? T.defesaFalhouComExemplo(palavra, revelada)
+        : T.defesaFalhouBlefe(palavra));
 }
 
 function desafiar() {
     if (fim || defendendo || prefix === "") return;
     revelada = engine.reveal_word(prefix);
     if (revelada) {
-        encerrar(`A IA mostrou "${revelada}". Não era blefe, você perdeu!`);
+        encerrar(T.iaMostrou(revelada));
     } else {
-        encerrar(`Nenhuma palavra começa com "${prefix}": era blefe! Você venceu!`);
+        encerrar(T.eraBlefe(prefix));
     }
 }
 
 // ---------- dicionário colaborativo ----------
 
-// palavras que outros jogadores já adicionaram. Só existe com o server.py:
+// palavras que outros jogadores já adicionaram. Só existe com o server.py (e só em português):
 // hospedado como site estático, as sugestões ficam escondidas
 async function carregarExtras() {
+    if (!el("sugerir")) return;
     try {
         const r = await fetch("api/palavras-extras");
         if (!r.ok) return;
@@ -248,7 +300,7 @@ async function carregarExtras() {
 
 async function sugerir(palavra) {
     palavra = palavra.trim().toLowerCase();
-    if (!palavra) return { ok: false, motivo: "Digite uma palavra." };
+    if (!palavra) return { ok: false, motivo: T.digitePalavra };
     try {
         const r = await fetch("api/sugerir", {
             method: "POST",
@@ -259,7 +311,7 @@ async function sugerir(palavra) {
         if (dados.ok) engine.add_word(dados.palavra);
         return dados;
     } catch (e) {
-        return { ok: false, motivo: "Servidor de sugestões indisponível (rode: make serve)." };
+        return { ok: false, motivo: T.servidorFora };
     }
 }
 
@@ -272,32 +324,33 @@ async function adicionarRecusada() {
     recusada = "";
     if (r.ok) {
         revelada = palavra;
-        status = `Agora "${palavra}" vale! A IA desafiou errado. Você venceu!`;
+        status = T.agoraVale(palavra);
     } else {
-        status = `${r.motivo} O resultado continua: você perdeu.`;
+        status = T.continuaPerdeu(r.motivo);
     }
     render();
 }
 
 el("adicionar").addEventListener("click", adicionarRecusada);
 
-el("abrir-sugerir").addEventListener("click", () => {
-    el("sugestao").value = "";
-    el("sugestao-resultado").textContent = "";
-    el("sugerir").showModal();
-});
+// a página em inglês não tem o diálogo de sugestão
+if (el("sugerir")) {
+    el("abrir-sugerir").addEventListener("click", () => {
+        el("sugestao").value = "";
+        el("sugestao-resultado").textContent = "";
+        el("sugerir").showModal();
+    });
 
-el("fechar-sugerir").addEventListener("click", () => el("sugerir").close());
+    el("fechar-sugerir").addEventListener("click", () => el("sugerir").close());
 
-el("form-sugerir").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    el("sugestao-resultado").textContent = "Conferindo…";
-    const r = await sugerir(el("sugestao").value);
-    el("sugestao-resultado").textContent = r.ok
-        ? `"${r.palavra}" entrou no dicionário. Obrigado!`
-        : r.motivo;
-    if (r.ok) el("sugestao").value = "";
-});
+    el("form-sugerir").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        el("sugestao-resultado").textContent = T.conferindo;
+        const r = await sugerir(el("sugestao").value);
+        el("sugestao-resultado").textContent = r.ok ? T.entrou(r.palavra) : r.motivo;
+        if (r.ok) el("sugestao").value = "";
+    });
+}
 
 // ---------- botões ----------
 

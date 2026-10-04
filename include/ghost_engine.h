@@ -23,7 +23,7 @@ public:
     // nota de vitória/derrota imediata; diminui 1 a cada lance de distância
     static constexpr int WIN = 100;
 
-    ghost_engine();
+    explicit ghost_engine(const std::string& path = "data/dicionario.trie");
 
     bool ready() const { return loaded_; }
 
@@ -41,6 +41,9 @@ public:
 
     // a IA desafia o prefixo formado pelo humano?
     bool challenge(const std::string& prefix);
+
+    // letras do dicionário carregado, da mais usada para a menos usada
+    const std::vector<std::string>& alphabet() const { return alphabet_; }
 
     // insere uma palavra nova (já validada por quem chama); false se já existe ou é curta
     bool add_word(const std::string& word);
@@ -77,11 +80,13 @@ private:
     std::unordered_map<size_t, int> memo_;
     // menor ranking de frequência entre as palavras abaixo de cada nó
     std::unordered_map<size_t, int> min_rank_;
+    std::vector<std::string> alphabet_;
 
     bool find_state(const std::string& prefix, state& out);
     std::vector<state> children(const state& current, bool known_only);
     int compute_min_rank(size_t from);
     void ensure_fresh();
+    void compute_alphabet();
     bool known_word(const state& s) const;
     int negamax(const state& current, int depth);
     bool chance(double p);
