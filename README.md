@@ -11,6 +11,13 @@ Jogo **Ghost** contra uma IA, em português e em inglês. Cada jogador acrescent
 - **IA:** negamax com memoização por nó da trie, horizonte e vocabulário limitados por nível, escolha por softmax e blefe quando está perdendo.
 - **Front-end:** HTML/JS puro; o motor em C++ roda no navegador via WebAssembly (Emscripten).
 
+## Dicionários
+
+Os dois partem das 50 mil palavras mais frequentes em legendas de filmes ([FrequencyWords](https://github.com/hermitdave/FrequencyWords), a partir do OpenSubtitles 2018), mantendo só palavras com 4+ letras e com vogal, e a ordem de frequência (que define o vocabulário da IA em cada nível):
+
+- **Português** (`data/palavras_validas.txt`, ~36 mil): `pt_br_50k` filtrada pelo corretor [Hunspell pt-BR (VERO)](https://github.com/LibreOffice/dictionaries/tree/master/pt_BR).
+- **Inglês** (`data/words_en.txt`, ~29 mil): `en_50k` filtrada pela lista [SCOWL](http://wordlist.aspell.net/) American English (pacote `wamerican`, `/usr/share/dict/american-english`).
+
 ## Rodar e compilar
 
 ```sh

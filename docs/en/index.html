@@ -25,31 +25,49 @@
             <a class="idioma" href="../" hreflang="pt-BR" aria-label="Versão em português">PT</a>
         </div>
     </header>
+    <p class="lema">Don't finish the word. Bluff if you must.</p>
 
     <main>
         <div id="tiles" aria-live="polite"></div>
         <div id="status">Loading dictionary…</div>
         <div class="acoes">
             <button id="adicionar" hidden>Add to dictionary</button>
-            <button id="desafiar" disabled>Challenge</button>
+            <button id="desafiar" disabled title="The AI must show a word starting with these letters">Challenge</button>
             <button id="novo">New game</button>
         </div>
     </main>
 
     <div id="teclado" class="desligado"></div>
 
-    <dialog id="regras">
-        <h2>How to play</h2>
-        <p>You and the AI take turns adding one letter. Whoever completes a word of 4 or more letters loses.</p>
-        <div class="exemplo">
-            <div class="tile voce">h</div><div class="tile ia">o</div><div class="tile voce">m</div><div class="tile ia">e</div>
+    <dialog id="regras" aria-label="How to play">
+        <section class="passo">
+            <h2>Don't finish the word</h2>
+            <div class="exemplo"><div class="tile voce">h</div><div class="tile ia">o</div><div class="tile voce">m</div><div class="tile ia">e</div></div>
+            <p>You (yellow) and the AI (green) take turns adding one letter. <b>Whoever completes a word</b> of 4 or more letters <b>loses</b>.</p><p>Here the AI added the last "e" of "home" and lost. Words of up to 3 letters, like "hot", don't count.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Every letter must lead to a word</h2>
+            <div class="exemplo"><div class="tile voce">h</div><div class="tile ia">o</div><div class="tile voce">u</div><div class="tile ia revelado">q</div></div>
+            <p>The letters on screen must be <b>the start of some real word</b>.</p><p>"hou" can become "house", "hour", "hours"… but "houq" doesn't start any word.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Bluffing</h2>
+            <div class="exemplo"><div class="tile voce">h</div><div class="tile ia">o</div><div class="tile voce">u</div><div class="tile ia">q</div></div>
+            <p>Even so, you can play a letter that leads to no word, <b>pretending you have one in mind</b>. That's a bluff.</p><p>The AI bluffs too, especially when it sees it's losing.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Challenge</h2>
+            <p>Suspicious of the AI? Press <b>Challenge</b>. It has to show a word that starts with the letters on screen:</p><ul><li>if it does, <b>you lose</b>;</li><li>if it was bluffing, <b>you win</b>.</li></ul><p>The AI can challenge you too. Then type the rest of the word you had in mind and press ENTER.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Levels & dictionary</h2>
+            <p><b>Easy</b>, <b>Medium</b> and <b>Hard</b> change how many moves ahead the AI looks, how many words it knows and how much it bluffs.</p><p class="fonte">Dictionary: the 50,000 most frequent words in movie subtitles (<a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">FrequencyWords</a>, built from OpenSubtitles), keeping only those in the <a href="http://wordlist.aspell.net/" target="_blank" rel="noopener">SCOWL</a> American English word list (wamerican), with 4 or more letters.</p>
+        </section>
+        <div class="pontos" aria-hidden="true"></div>
+        <div class="linha-botoes guia-botoes">
+            <button type="button" class="secundario" id="guia-voltar">Back</button>
+            <button type="button" id="guia-proximo" data-proximo="Next" data-jogar="Play!">Next</button>
         </div>
-        <p>Your letters are yellow and the AI's are green. Here the AI completed "home" and lost.</p>
-        <p>Bluffing is allowed: you can play a letter that doesn't start any word.
-           If you suspect the AI, press <b>Challenge</b>: it has to show a word that starts with the letters on screen.
-           If it does, you lose; if it was bluffing, you win.</p>
-        <p>The AI can challenge you too. Then type the rest of a word and press ENTER.</p>
-        <form method="dialog"><button>Got it</button></form>
     </dialog>
 
     <script src="../main.js"></script>

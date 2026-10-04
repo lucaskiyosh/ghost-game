@@ -26,32 +26,50 @@
             <a class="idioma" href="en/" hreflang="en" aria-label="English version">EN</a>
         </div>
     </header>
+    <p class="lema">Não complete a palavra. Blefe se precisar.</p>
 
     <main>
         <div id="tiles" aria-live="polite"></div>
         <div id="status">Carregando dicionário…</div>
         <div class="acoes">
             <button id="adicionar" hidden>Adicionar ao dicionário</button>
-            <button id="desafiar" disabled>Desafiar</button>
+            <button id="desafiar" disabled title="A IA tem que mostrar uma palavra que comece com essas letras">Desafiar</button>
             <button id="novo">Novo jogo</button>
         </div>
     </main>
 
     <div id="teclado" class="desligado"></div>
 
-    <dialog id="regras">
-        <h2>Como jogar</h2>
-        <p>Você e a IA adicionam uma letra por vez. Perde quem completar uma palavra de 4 letras ou mais.</p>
-        <div class="exemplo">
-            <div class="tile voce">c</div><div class="tile ia">a</div><div class="tile voce">s</div><div class="tile ia">a</div>
+    <dialog id="regras" aria-label="Como jogar">
+        <section class="passo">
+            <h2>Não complete a palavra</h2>
+            <div class="exemplo"><div class="tile voce">c</div><div class="tile ia">a</div><div class="tile voce">s</div><div class="tile ia">a</div></div>
+            <p>Você (amarelo) e a IA (verde) colocam uma letra por vez. <b>Perde quem completar uma palavra</b> de 4 letras ou mais.</p><p>Aqui a IA colocou o último "a" de "casa" e perdeu. Palavras de até 3 letras, como "mar", não contam.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Toda letra tem que levar a uma palavra</h2>
+            <div class="exemplo"><div class="tile voce">c</div><div class="tile ia">a</div><div class="tile voce">s</div><div class="tile ia revelado">x</div></div>
+            <p>As letras na tela precisam ser o <b>começo de alguma palavra de verdade</b>.</p><p>"cas" pode virar "casa", "casal", "caso"… Já "casx" não começa nenhuma palavra.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Blefe</h2>
+            <div class="exemplo"><div class="tile voce">c</div><div class="tile ia">a</div><div class="tile voce">s</div><div class="tile ia">x</div></div>
+            <p>Mesmo assim, dá para jogar uma letra que não leva a palavra nenhuma, <b>fingindo que você tem uma em mente</b>. Isso é um blefe.</p><p>A IA também blefa, principalmente quando percebe que está perdendo.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Desafiar</h2>
+            <p>Desconfiou da IA? Clique em <b>Desafiar</b>. Ela precisa mostrar uma palavra que comece com as letras na tela:</p><ul><li>se mostrar, <b>você perde</b>;</li><li>se era blefe, <b>você ganha</b>.</li></ul><p>A IA também pode te desafiar. Aí digite o resto da palavra que você tinha em mente e aperte ENTER.</p>
+        </section>
+        <section class="passo" hidden>
+            <h2>Níveis e dicionário</h2>
+            <p><b>Fácil</b>, <b>Médio</b> e <b>Difícil</b> mudam quantas jogadas a IA enxerga à frente, quantas palavras ela conhece e quanto ela blefa.</p><p class="fonte">Dicionário: as 50 mil palavras mais frequentes em legendas de filmes (<a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">FrequencyWords</a>, a partir do OpenSubtitles), mantendo só as que o corretor <a href="https://github.com/LibreOffice/dictionaries/tree/master/pt_BR" target="_blank" rel="noopener">Hunspell pt-BR (VERO)</a> reconhece, com 4 letras ou mais.</p>
+            <p id="dica-sugerir" hidden>Faltou uma palavra? Use o <b>+</b> para sugerir. Se ela existir em português, entra no dicionário para todo mundo.</p>
+        </section>
+        <div class="pontos" aria-hidden="true"></div>
+        <div class="linha-botoes guia-botoes">
+            <button type="button" class="secundario" id="guia-voltar">Voltar</button>
+            <button type="button" id="guia-proximo" data-proximo="Próximo" data-jogar="Jogar!">Próximo</button>
         </div>
-        <p>Suas letras ficam em amarelo e as da IA em verde. Aqui a IA completou "casa" e perdeu.</p>
-        <p>Vale blefar: você pode jogar uma letra que não forma começo de nenhuma palavra.
-           Se desconfiar da IA, clique em <b>Desafiar</b>: ela tem que mostrar uma palavra que comece com as letras na tela.
-           Se mostrar, você perde; se era blefe, você ganha.</p>
-        <p>A IA também pode te desafiar. Aí digite o resto de uma palavra e aperte ENTER.</p>
-        <p id="dica-sugerir" hidden>Faltou uma palavra? Use o <b>+</b> para sugerir. Se ela existir em português, entra no dicionário para todo mundo.</p>
-        <form method="dialog"><button>Entendi</button></form>
     </dialog>
 
     <dialog id="sugerir">

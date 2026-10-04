@@ -199,3 +199,21 @@ dialog button {
     h1 { font-size: 1.4rem; }
     #nivel, .idioma { font-size: 0.85rem; padding: 0.25rem 0.4rem; }
 }
+
+/* lema abaixo do título */
+.lema {
+    margin: 0 1rem;
+    font-size: 0.95rem;
+    opacity: 0.85;
+    text-align: center;
+}
+
+/* guia em passos */
+dialog .passo ul { margin: 0 0 0.75rem; padding-left: 1.2rem; }
+dialog .passo a { color: var(--texto); }
+dialog .fonte { font-size: 0.9rem; opacity: 0.9; }
+.pontos { display: flex; gap: 0.4rem; justify-content: center; margin: 0.5rem 0 1rem; }
+.pontos span { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--borda); }
+.pontos span.atual { background: var(--ia); }
+.guia-botoes { justify-content: space-between; }
+.guia-botoes button:disabled { opacity: 0.4; cursor: default; }

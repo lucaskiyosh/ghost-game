@@ -5,7 +5,7 @@ const TEXTOS = {
     pt: {
         carregando: "Carregando dicionário…",
         erroDicionario: "Erro: não foi possível carregar o dicionário.",
-        suaVez: "Sua vez: digite uma letra e aperte ENTER.",
+        suaVez: "Sua vez: escolha uma letra (sem completar palavra) e aperte ENTER.",
         voceCompletou: (p) => `Você completou a palavra "${p}". Você perdeu!`,
         iaDesafiou: (p) => `A IA te desafiou! Complete uma palavra que comece com "${p}" e aperte ENTER.`,
         iaDesistiu: (p) => `A IA desistiu em "${p}". Você venceu!`,
@@ -27,7 +27,7 @@ const TEXTOS = {
     en: {
         carregando: "Loading dictionary…",
         erroDicionario: "Error: the dictionary could not be loaded.",
-        suaVez: "Your turn: type a letter and press ENTER.",
+        suaVez: "Your turn: pick a letter (without finishing a word) and press ENTER.",
         voceCompletou: (p) => `You completed the word "${p}". You lose!`,
         iaDesafiou: (p) => `The AI challenged you! Finish a word that starts with "${p}" and press ENTER.`,
         iaDesistiu: (p) => `The AI gave up at "${p}". You win!`,
@@ -108,6 +108,7 @@ var Module = {
         el("nivel").value = nivelSalvo();
         aplicarNivel(el("nivel").value);
         novoJogo();
+        if (!guiaJaVisto()) abrirGuia();
         carregarExtras();
     }
 };
@@ -367,4 +368,42 @@ el("nivel").addEventListener("change", (e) => {
     if (engine) aplicarNivel(e.target.value);
 });
 
-el("abrir-regras").addEventListener("click", () => el("regras").showModal());
+// ---------- guia (como jogar) ----------
+
+const passos = Array.from(document.querySelectorAll("#regras .passo"));
+let passo = 0;
+
+function mostrarPasso(i) {
+    passo = i;
+    passos.forEach((p, j) => { p.hidden = j !== i; });
+    el("guia-voltar").disabled = i === 0;
+    const proximo = el("guia-proximo");
+    proximo.textContent = i === passos.length - 1 ? proximo.dataset.jogar : proximo.dataset.proximo;
+    document.querySelectorAll("#regras .pontos span").forEach((s, j) => s.classList.toggle("atual", j === i));
+}
+
+function abrirGuia() {
+    mostrarPasso(0);
+    el("regras").showModal();
+}
+
+// o guia abre sozinho só na primeira visita
+function guiaJaVisto() {
+    try {
+        if (localStorage.getItem("ghost-guia-visto")) return true;
+        localStorage.setItem("ghost-guia-visto", "1");
+    } catch (e) {}
+    return false;
+}
+
+for (let i = 0; i < passos.length; i++) el("regras").querySelector(".pontos").append(document.createElement("span"));
+
+el("guia-voltar").addEventListener("click", () => mostrarPasso(Math.max(passo - 1, 0)));
+el("guia-proximo").addEventListener("click", () => {
+    if (passo === passos.length - 1) el("regras").close();
+    else mostrarPasso(passo + 1);
+});
+// clicar fora do cartão fecha
+el("regras").addEventListener("click", (e) => { if (e.target === el("regras")) el("regras").close(); });
+
+el("abrir-regras").addEventListener("click", abrirGuia);
