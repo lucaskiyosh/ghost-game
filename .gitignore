@@ -1,0 +1,6 @@
+# binários
+/test
+/mkcedar
+
+# metadados do Windows
+*:Zone.Identifier
