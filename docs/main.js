@@ -7,7 +7,8 @@ const TEXTOS = {
         erroDicionario: "Erro: não foi possível carregar o dicionário.",
         suaVez: "Sua vez: escolha uma letra (sem completar palavra) e aperte ENTER.",
         voceCompletou: (p) => `Você completou a palavra "${p}". Você perdeu!`,
-        iaDesafiou: (p) => `A IA te desafiou! Complete uma palavra que comece com "${p}" e aperte ENTER.`,
+        iaDesafiou: (p) => `⚠ A IA te desafiou! Ela acha que "${p}" é blefe. Digite o resto da palavra que você tinha em mente (a palavra inteira) e aperte ENTER.`,
+        continueDigitando: (w) => `"${w}" ainda não é uma palavra completa. Continue digitando até o fim da palavra e aperte ENTER.`,
         iaDesistiu: (p) => `A IA desistiu em "${p}". Você venceu!`,
         iaCompletou: (p) => `A IA completou a palavra "${p}". Você venceu!`,
         iaJogou: (l) => `A IA jogou "${l}". Sua vez.`,
@@ -29,7 +30,8 @@ const TEXTOS = {
         erroDicionario: "Error: the dictionary could not be loaded.",
         suaVez: "Your turn: pick a letter (without finishing a word) and press ENTER.",
         voceCompletou: (p) => `You completed the word "${p}". You lose!`,
-        iaDesafiou: (p) => `The AI challenged you! Finish a word that starts with "${p}" and press ENTER.`,
+        iaDesafiou: (p) => `⚠ The AI challenged you! It thinks "${p}" is a bluff. Type the rest of the word you had in mind (the whole word) and press ENTER.`,
+        continueDigitando: (w) => `"${w}" isn't a complete word yet. Keep typing to the end of the word and press ENTER.`,
         iaDesistiu: (p) => `The AI gave up at "${p}". You win!`,
         iaCompletou: (p) => `The AI completed the word "${p}". You win!`,
         iaJogou: (l) => `The AI played "${l}". Your turn.`,
@@ -179,6 +181,7 @@ function render(pulo = false) {
     box.style.setProperty("--n", Math.max(box.children.length, 6));
 
     el("status").textContent = status;
+    el("status").classList.toggle("alerta", defendendo);
     el("desafiar").disabled = !suaVez || prefix === "";
     el("teclado").classList.toggle("desligado", fim);
     el("adicionar").hidden = !(temServidor && fim && recusada);
@@ -303,6 +306,13 @@ function vezDaIA() {
 
 function defender(palavra) {
     if (!defendendo || palavra === prefix) return;
+
+    // começo de palavra válido mas incompleto: não encerra, só pede para continuar
+    // (antes, um ENTER no meio, como "placen" em vez de "placenta", já dava derrota)
+    if (engine.check(palavra) === Module.WordState.incompleto) {
+        status = T.continueDigitando(palavra);
+        return render();
+    }
 
     if (engine.check(palavra) === Module.WordState.completo) {
         revelada = palavra;

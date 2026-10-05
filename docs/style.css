@@ -217,3 +217,13 @@ dialog .fonte { font-size: 0.9rem; opacity: 0.9; }
 .pontos span.atual { background: var(--ia); }
 .guia-botoes { justify-content: space-between; }
 .guia-botoes button:disabled { opacity: 0.4; cursor: default; }
+
+/* a IA te desafiou: o balão fica amarelo e "pulsa" uma vez para chamar atenção */
+#status.alerta {
+    background: var(--voce);
+    color: var(--escuro);
+    font-weight: 600;
+    animation: alerta 400ms ease-out;
+}
+@keyframes alerta { 0% { transform: scale(0.94); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { #status.alerta { animation: none; } }
