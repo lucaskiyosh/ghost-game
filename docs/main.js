@@ -304,8 +304,22 @@ function vezDaIA() {
     render();
 }
 
+// a primeira palavra completa no caminho de "texto", depois do prefixo atual
+// (ex: em "provavel" a partida já acabaria em "prova"); "" se não houver
+function primeiraPalavra(texto) {
+    const letras = Array.from(texto);
+    for (let n = Array.from(prefix).length + 1; n <= letras.length; n++) {
+        const parcial = letras.slice(0, n).join("");
+        if (engine.check(parcial) === Module.WordState.completo) return parcial;
+    }
+    return "";
+}
+
 function defender(palavra) {
     if (!defendendo || palavra === prefix) return;
+
+    // a defesa vale com a primeira palavra do caminho: é ali que o jogo terminaria
+    palavra = primeiraPalavra(palavra) || palavra;
 
     // começo de palavra válido mas incompleto: não encerra, só pede para continuar
     // (antes, um ENTER no meio, como "placen" em vez de "placenta", já dava derrota)

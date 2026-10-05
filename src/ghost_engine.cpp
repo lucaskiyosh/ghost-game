@@ -75,12 +75,18 @@ void ghost_engine::ensure_fresh()
     dirty_ = false;
 }
 
-// DFS que guarda, para cada nó, o ranking da palavra mais frequente abaixo dele
+// DFS que guarda, para cada nó, o ranking da palavra mais frequente que dá para
+// alcançar jogando a partir dele. Palavras abaixo de outra palavra não contam:
+// de "prov" não se chega a "provavelmente", porque o jogo acaba antes em "prova"
+// (todo o dicionário tem 4+ letras, então toda palavra completa encerra o jogo).
+// Os filhos são visitados mesmo assim, para todo nó ter sua entrada no mapa.
 int ghost_engine::compute_min_rank(size_t from)
 {
-    int best = trie.has_value(from) ? trie.value_at(from) : INT_MAX;
+    const bool palavra = trie.has_value(from);
+    int best = palavra ? trie.value_at(from) : INT_MAX;
     trie.for_each_child(from, [&](unsigned char, size_t to) {
-        best = std::min(best, compute_min_rank(to));
+        const int abaixo = compute_min_rank(to);
+        if (!palavra) best = std::min(best, abaixo);
     });
     min_rank_[from] = best;
     return best;

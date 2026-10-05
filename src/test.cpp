@@ -117,10 +117,22 @@ int main() {
     // palavras curtas saíram do dicionário
     esperar(engine.check("yin") == word_state::invalido, "check(yin) == invalido (palavra curta removida)");
 
-    // revelar palavra
+    // revelar palavra: só palavras alcançáveis (sem outra palavra no caminho)
     std::string revelada = engine.reveal_word("abelh");
-    esperar(revelada.compare(0, 5, "abelh") == 0 && engine.check(revelada) == word_state::completo,
-            "reveal_word(abelh) == \"" + revelada + "\"");
+    esperar(revelada == "abelha", "reveal_word(abelh) == \"" + revelada + "\" (abelhas passa por abelha)");
+    esperar(engine.reveal_word("prov") == "prova",
+            "reveal_word(prov) == \"" + engine.reveal_word("prov") + "\" (provavelmente passa por prova)");
+    bool alcancaveis = true;
+    for (const std::string p : {"prov", "abelh", "cas", "ment", "esper", "fal"}) {
+        std::string w = engine.reveal_word(p);
+        if (w.empty() || engine.check(w) != word_state::completo) alcancaveis = false;
+        for (size_t n = p.size() + 1; n < w.size(); ++n) {
+            // só corta em fronteira de caractere UTF-8
+            if ((static_cast<unsigned char>(w[n]) & 0xC0) == 0x80) continue;
+            if (engine.check(w.substr(0, n)) == word_state::completo) alcancaveis = false;
+        }
+    }
+    esperar(alcancaveis, "palavras reveladas não passam por outra palavra");
     esperar(engine.reveal_word("xqz") == "", "reveal_word(xqz) == \"\"");
 
     // desafio
@@ -165,7 +177,7 @@ int main() {
     esperar(!engine.add_word("gêiser"), "add_word(gêiser) de novo == false");
     esperar(!engine.add_word("abc"), "add_word(abc) == false (curta)");
     esperar(!engine.best_move("gêi").empty(), "best_move(gêi) devolve letra");
-    esperar(engine.reveal_word("abelh") == "abelhas", "reveal_word(abelh) continua certo depois de inserir");
+    esperar(engine.reveal_word("abelh") == "abelha", "reveal_word(abelh) continua certo depois de inserir");
 
     // o alfabeto vem do dicionário
     const auto& alfabeto_pt = engine.alphabet();
@@ -180,6 +192,7 @@ int main() {
         esperar(en.check("house") == word_state::completo, "EN: check(house) == completo");
         esperar(en.check("hous") == word_state::incompleto, "EN: check(hous) == incompleto");
         esperar(en.check("xqz") == word_state::invalido, "EN: check(xqz) == invalido");
+        esperar(en.reveal_word("hous") == "house", "EN: reveal_word(hous) == \"" + en.reveal_word("hous") + "\"");
         en.set_creativity(0);
         std::string lance = en.best_move("hous");
         esperar(lance != "e", "EN: best_move(hous) != \"e\" (devolveu \"" + lance + "\")");
