@@ -4,6 +4,8 @@
 
 const DIA_ZERO = Date.UTC(2026, 9, 6);           // desafio #1
 const NIVEIS_ROUND = ["facil", "medio", "dificil"];
+// quem abre cada round: você escolhe a 1ª letra nos rounds 1 e 3; no 2 a IA abre com a letra do dia
+const QUEM_ABRE = ["voce", "ia", "voce"];
 // letras de abertura que começam muitas palavras no idioma
 const ABERTURAS = LANG === "pt" ? "cmpsadtrbefglnov" : "sctpbmdafrhwlgei";
 const CHAVE_DAILY = `ghost-daily-${LANG}`;
@@ -42,6 +44,7 @@ function gravar(chave, valor) {
 // {dia, rounds: ["voce" | "ia", ...], tabuleiro: {prefix, autor, defendendo} | null}
 let daily = null;
 let roundEncerrado = false;
+let resultadoPendente = false;   // 3º round acabou e o resultado está prestes a abrir
 const textoNovoOriginal = el("novo").textContent;
 
 function carregarDaily() {
@@ -60,13 +63,19 @@ function prepararMotor(round, extraSeed = 0) {
     engine.set_seed(daily.dia * 10 + round + extraSeed);
 }
 
+function statusInicial(r) {
+    const nivel = T.nomesNivel[NIVEIS_ROUND[r - 1]];
+    return QUEM_ABRE[r - 1] === "ia"
+        ? T.roundSuaVez(r, nivel, letraInicial(daily.dia, r))
+        : T.roundVoceComeca(r, nivel);
+}
+
 function iniciarRound() {
     const r = roundAtual();
-    const l = letraInicial(daily.dia, r);
     prepararMotor(r);
     roundEncerrado = false;
     if (r === 1) evento("daily/inicio");
-    novoJogo(l, T.roundSuaVez(r, T.nomesNivel[nivelDaily], l));
+    novoJogo(QUEM_ABRE[r - 1] === "ia" ? letraInicial(daily.dia, r) : "", statusInicial(r));
 }
 
 // a página foi recarregada no meio de um round: volta exatamente onde estava
@@ -80,9 +89,7 @@ function retomarRound() {
     autor = t.autor.slice();
     defendendo = t.defendendo;
     desenhados = autor.length;
-    status = defendendo
-        ? T.iaDesafiou(prefix)
-        : T.roundSuaVez(r, T.nomesNivel[nivelDaily], letraInicial(daily.dia, r));
+    status = defendendo ? T.iaDesafiou(prefix) : statusInicial(r);
     render();
 }
 
@@ -112,7 +119,9 @@ aoEncerrar = (resultado) => {
     if (dailyTerminou()) {
         registrarEstatisticas();
         evento(`daily/fim/${vitorias()}x${3 - vitorias()}`);
-        setTimeout(abrirResultado, 1200);
+        // abre sozinho, só depois da animação do último tile
+        resultadoPendente = true;
+        setTimeout(abrirResultado, 500);
     }
     render();
 };
@@ -133,8 +142,8 @@ aoRender = () => {
         return;
     }
 
-    // no meio de um round não dá para recomeçar
-    el("novo").hidden = !fim;
+    // no meio de um round não dá para recomeçar; com o resultado aberto (ou abrindo) o botão some
+    el("novo").hidden = !fim || resultadoPendente || el("resultado").open;
     el("novo").textContent = dailyTerminou() ? T.verResultado : T.proximoRound;
 
     el("rounds").querySelectorAll("span").forEach((s, i) => {
@@ -190,8 +199,7 @@ aoIniciar = () => entrarDaily();
 // ---------- resultado ----------
 
 function provocacao() {
-    const lista = T.provocacoes[vitorias()];
-    return lista[Math.floor(mulberry32(daily.dia * 31)() * lista.length)];
+    return T.provocacoes[vitorias()];
 }
 
 function textoCompartilhar(streak) {
@@ -215,6 +223,7 @@ function atualizarContagem() {
 let relogio = null;
 
 function abrirResultado() {
+    resultadoPendente = false;
     if (el("resultado").open || !dailyTerminou()) return;
     const s = ler(CHAVE_STATS, { streak: 1 });
     el("res-titulo").textContent = `👻 GHOST #${daily.dia}`;
@@ -234,11 +243,14 @@ function abrirResultado() {
     clearInterval(relogio);
     relogio = setInterval(atualizarContagem, 30000);
     el("resultado").showModal();
+    render();
 }
 
-el("resultado").addEventListener("close", () => clearInterval(relogio));
-el("resultado").addEventListener("click", (e) => {
-    if (e.target === el("resultado")) el("resultado").close();
+// fecha só com Esc ou "Modo prática" (clicar fora fechava sem querer no celular);
+// depois de fechado, o botão "Ver resultado" reabre
+el("resultado").addEventListener("close", () => {
+    clearInterval(relogio);
+    render();
 });
 
 el("res-compartilhar").addEventListener("click", async () => {

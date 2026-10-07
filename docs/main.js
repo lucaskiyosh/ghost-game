@@ -29,6 +29,7 @@ const TEXTOS = {
         abaPratica: "Prática",
         nomesNivel: { facil: "Fácil", medio: "Médio", dificil: "Difícil" },
         roundSuaVez: (r, nivel, l) => `Round ${r} de 3 · ${nivel}. A IA começou com "${l}". Sua vez.`,
+        roundVoceComeca: (r, nivel) => `Round ${r} de 3 · ${nivel}. Você começa: escolha a primeira letra.`,
         roundVoceVenceu: (r) => `Você ganhou o round ${r}!`,
         roundIaVenceu: (r) => `A IA ganhou o round ${r}.`,
         proximoRound: "Próximo round",
@@ -41,13 +42,13 @@ const TEXTOS = {
         modoPratica: "Modo prática",
         praticaStatus: "Modo prática: não conta para o desafio do dia. Sua vez.",
         shareStreak: (n) => `🔥 ${n} ${n === 1 ? "dia" : "dias"}`,
-        provocacoes: {
-            0: ["Vamos fingir que isso nunca aconteceu.", "Eu esperava mais de você.",
-                "Foi você que escolheu jogar contra mim.", "3 rodadas e você ainda não conseguiu? 😭"],
-            1: ["Quase. Mas quase não conta.", "Um round. Que fofo."],
-            2: ["Você teve sorte.", "Aproveita. Amanhã eu não erro."],
-            3: ["…Isso não aconteceu.", "Tá. Hoje foi seu dia. Amanhã eu volto."],
-        },
+        // pelo número de rounds que você ganhou (0 a 3)
+        provocacoes: [
+            "Eu não esperava que fosse tão fácil.",
+            "Você realmente achou que ia me vencer?",
+            "Foi por pouco. Não se acostume.",
+            "Você teve sorte.",
+        ],
     },
     en: {
         carregando: "Loading dictionary…",
@@ -75,6 +76,7 @@ const TEXTOS = {
         abaPratica: "Practice",
         nomesNivel: { facil: "Easy", medio: "Medium", dificil: "Hard" },
         roundSuaVez: (r, nivel, l) => `Round ${r} of 3 · ${nivel}. The AI opened with "${l}". Your turn.`,
+        roundVoceComeca: (r, nivel) => `Round ${r} of 3 · ${nivel}. You go first: pick the first letter.`,
         roundVoceVenceu: (r) => `You won round ${r}!`,
         roundIaVenceu: (r) => `The AI won round ${r}.`,
         proximoRound: "Next round",
@@ -87,13 +89,12 @@ const TEXTOS = {
         modoPratica: "Practice mode",
         praticaStatus: "Practice mode: doesn't count for the daily. Your turn.",
         shareStreak: (n) => `🔥 ${n} ${n === 1 ? "day" : "days"}`,
-        provocacoes: {
-            0: ["Let's pretend that never happened.", "I expected more from you.",
-                "You chose to play against me.", "3 rounds and still nothing? 😭"],
-            1: ["Close. But close doesn't count.", "One round. How cute."],
-            2: ["You got lucky.", "Enjoy it. I won't miss tomorrow."],
-            3: ["…That didn't happen.", "Fine. Today was your day. I'll be back tomorrow."],
-        },
+        provocacoes: [
+            "I didn't expect it to be this easy.",
+            "Did you really think you'd beat me?",
+            "That was close. Don't get used to it.",
+            "You got lucky.",
+        ],
     },
 };
 const T = TEXTOS[LANG];

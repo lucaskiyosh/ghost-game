@@ -7,7 +7,7 @@ Jogo **Ghost** contra uma IA, em português e em inglês. Cada jogador acrescent
 
 ## Desafio do dia
 
-Todo dia há um desafio novo, igual para todo mundo: 3 rounds contra a IA (Fácil → Médio → Difícil), cada um aberto pela IA com uma letra sorteada. No fim, a IA comenta o placar e dá para compartilhar o resultado (sem revelar as palavras). Tudo roda no navegador, sem servidor:
+Todo dia há um desafio novo, igual para todo mundo: 3 rounds contra a IA (Fácil → Médio → Difícil), você abre os rounds 1 e 3 e a IA abre o 2 com a letra do dia. No fim, a IA comenta o placar e dá para compartilhar o resultado (sem revelar as palavras). Tudo roda no navegador, sem servidor:
 
 - o número do dia (#1 = 6/10/2026) é a seed da letra de abertura e do sorteio da IA, então quem joga as mesmas letras recebe as mesmas respostas;
 - progresso, sequência (🔥 dias jogados seguidos) e estatísticas ficam no `localStorage`, separados por idioma;
