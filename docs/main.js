@@ -134,15 +134,29 @@ const T = TEXTOS[LANG];
 // código de xxx.goatcounter.com; vazio = sem métricas (nada é enviado)
 const GOATCOUNTER = "lucaskiyoshi";
 
+// o GoatCounter recusa (erro 429) rajadas de requisições: vários eventos juntos ao abrir
+// ou no fim de uma partida derrubavam até a contagem da visita. Por isso os eventos
+// entram numa fila e saem um a cada INTERVALO_ENVIO, depois que a visita foi contada.
+const INTERVALO_ENVIO = 600;
 const filaEventos = [];
+let enviando = false;
+
+function bombearEventos() {
+    if (enviando || !window.goatcounter || !window.goatcounter.count) return;
+    enviando = true;
+    const proximo = () => {
+        const dados = filaEventos.shift();
+        if (!dados) { enviando = false; return; }
+        try { window.goatcounter.count(dados); } catch (e) {}
+        setTimeout(proximo, INTERVALO_ENVIO);
+    };
+    setTimeout(proximo, INTERVALO_ENVIO);   // a visita (enviada pelo count.js) vai primeiro
+}
 
 function evento(nome) {
     if (!GOATCOUNTER) return;
-    const dados = { path: `${LANG}/${nome}`, title: nome, event: true };
-    try {
-        if (window.goatcounter && window.goatcounter.count) window.goatcounter.count(dados);
-        else filaEventos.push(dados);
-    } catch (e) {}
+    filaEventos.push({ path: `${LANG}/${nome}`, title: nome, event: true });
+    bombearEventos();
 }
 
 // etapas do funil: cada uma é enviada no máximo uma vez por visita (carregamento da página),
@@ -173,7 +187,7 @@ if (GOATCOUNTER) {
     s.src = "//gc.zgo.at/count.js";
     s.dataset.goatcounter = `https://${GOATCOUNTER}.goatcounter.com/count`;
     s.onload = () => {
-        try { while (filaEventos.length) window.goatcounter.count(filaEventos.shift()); } catch (e) {}
+        bombearEventos();
         limparParametroShare();
     };
     s.onerror = limparParametroShare;      // bloqueador de anúncios
