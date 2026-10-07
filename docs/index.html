@@ -28,7 +28,13 @@
     </header>
     <p class="lema">Não complete a palavra. Blefe se precisar.</p>
 
+    <nav class="abas">
+        <button type="button" id="aba-daily" class="ativa">Desafio do dia #1</button>
+        <button type="button" id="aba-pratica">Prática</button>
+    </nav>
+
     <main>
+        <div id="rounds" class="rounds" aria-hidden="true"><span></span><span></span><span></span></div>
         <div id="tiles" aria-live="polite"></div>
         <div id="status">Carregando dicionário…</div>
         <div class="acoes">
@@ -66,6 +72,11 @@
             <p id="dica-sugerir" hidden>Faltou uma palavra? Use o <b>+</b> para sugerir. Se ela existir em português, entra no dicionário para todo mundo.</p>
             <p id="aviso-metricas" class="fonte" hidden>Contamos visitas e partidas de forma anônima, sem cookies (GoatCounter).</p>
         </section>
+        <section class="passo" hidden>
+            <h2>Desafio do dia</h2>
+            <p>Todo dia há um desafio novo, <b>igual para todo mundo</b>: 3 rounds contra a IA, cada um mais difícil (Fácil, Médio, Difícil). A IA abre cada round com uma letra.</p>
+            <p>No fim, compartilhe o placar sem entregar as palavras e volte amanhã para manter a sequência 🔥. Quer treinar? Use a aba <b>Prática</b>, que não conta para o desafio.</p>
+        </section>
         <div class="pontos" aria-hidden="true"></div>
         <div class="linha-botoes guia-botoes">
             <button type="button" class="secundario" id="guia-voltar">Voltar</button>
@@ -86,7 +97,22 @@
         </form>
     </dialog>
 
+    <dialog id="resultado" aria-labelledby="res-titulo">
+        <h2 id="res-titulo"></h2>
+        <div id="res-rounds" class="res-rounds"></div>
+        <p id="res-placar" class="res-placar"></p>
+        <p id="res-provocacao" class="provocacao"></p>
+        <p id="res-streak"></p>
+        <div class="linha-botoes">
+            <button type="button" id="res-compartilhar"></button>
+            <button type="button" class="secundario" id="res-pratica"></button>
+        </div>
+        <p id="res-copiado" class="fonte" aria-live="polite" hidden></p>
+        <p id="res-proximo" class="fonte"></p>
+    </dialog>
+
     <script src="main.js"></script>
+    <script src="daily.js"></script>
     <script src="ghost.js"></script>
 </body>
 </html>

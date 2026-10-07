@@ -27,7 +27,13 @@
     </header>
     <p class="lema">Don't finish the word. Bluff if you must.</p>
 
+    <nav class="abas">
+        <button type="button" id="aba-daily" class="ativa">Daily #1</button>
+        <button type="button" id="aba-pratica">Practice</button>
+    </nav>
+
     <main>
+        <div id="rounds" class="rounds" aria-hidden="true"><span></span><span></span><span></span></div>
         <div id="tiles" aria-live="polite"></div>
         <div id="status">Loading dictionary…</div>
         <div class="acoes">
@@ -64,6 +70,11 @@
             <p><b>Easy</b>, <b>Medium</b> and <b>Hard</b> change how many moves ahead the AI looks, how many words it knows and how much it bluffs.</p><p class="fonte">Dictionary: the 50,000 most frequent words in movie subtitles (<a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener">FrequencyWords</a>, built from OpenSubtitles), keeping only those in the <a href="http://wordlist.aspell.net/" target="_blank" rel="noopener">SCOWL</a> American English word list (wamerican), with 4 or more letters.</p>
             <p id="aviso-metricas" class="fonte" hidden>We count visits and games anonymously, without cookies (GoatCounter).</p>
         </section>
+        <section class="passo" hidden>
+            <h2>Daily challenge</h2>
+            <p>Every day there's a new challenge, <b>the same for everyone</b>: 3 rounds against the AI, each harder than the last (Easy, Medium, Hard). The AI opens each round with a letter.</p>
+            <p>At the end, share your score without spoiling the words, and come back tomorrow to keep your streak 🔥. Want to train? Use the <b>Practice</b> tab, which doesn't count for the daily.</p>
+        </section>
         <div class="pontos" aria-hidden="true"></div>
         <div class="linha-botoes guia-botoes">
             <button type="button" class="secundario" id="guia-voltar">Back</button>
@@ -71,7 +82,22 @@
         </div>
     </dialog>
 
+    <dialog id="resultado" aria-labelledby="res-titulo">
+        <h2 id="res-titulo"></h2>
+        <div id="res-rounds" class="res-rounds"></div>
+        <p id="res-placar" class="res-placar"></p>
+        <p id="res-provocacao" class="provocacao"></p>
+        <p id="res-streak"></p>
+        <div class="linha-botoes">
+            <button type="button" id="res-compartilhar"></button>
+            <button type="button" class="secundario" id="res-pratica"></button>
+        </div>
+        <p id="res-copiado" class="fonte" aria-live="polite" hidden></p>
+        <p id="res-proximo" class="fonte"></p>
+    </dialog>
+
     <script src="../main.js"></script>
+    <script src="../daily.js"></script>
     <script src="ghost.js"></script>
 </body>
 </html>

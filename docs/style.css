@@ -1,3 +1,5 @@
+[hidden] { display: none !important; }
+
 :root {
     --fundo: #6e5c62;
     --borda: #4c4347;
@@ -227,3 +229,37 @@ dialog .fonte { font-size: 0.9rem; opacity: 0.9; }
 }
 @keyframes alerta { 0% { transform: scale(0.94); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { #status.alerta { animation: none; } }
+
+/* abas: desafio do dia | prática */
+.abas { display: flex; gap: 0.4rem; justify-content: center; margin: 0.6rem 1rem 0; }
+.abas button {
+    border: none;
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem;
+    background: transparent;
+    border: 0.125em solid var(--borda);
+    font-weight: 600;
+    cursor: pointer;
+}
+.abas button.ativa { background: var(--borda); }
+
+/* indicador dos 3 rounds do desafio do dia */
+.rounds { display: flex; gap: 0.5rem; }
+.rounds span {
+    width: 0.8rem; height: 0.8rem; border-radius: 50%;
+    border: 0.125em solid var(--borda);
+}
+.rounds span.atual { border-color: var(--texto); }
+.rounds span.voce { background: var(--ia); border-color: var(--ia); }
+.rounds span.ia { background: #c4554d; border-color: #c4554d; }
+
+/* resultado do dia */
+#resultado { text-align: center; }
+#resultado h2 { font-size: 1.6rem; }
+.res-rounds { display: flex; gap: 0.4rem; justify-content: center; margin-bottom: 0.75rem; }
+.res-round { padding: 0.35rem 0.7rem; border-radius: 0.4rem; font-weight: 600; }
+.res-round.voce { background: var(--ia); }
+.res-round.ia { background: #c4554d; }
+.res-placar { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
+.provocacao { font-size: 1.15rem; font-style: italic; }
+#resultado .linha-botoes { justify-content: center; margin-bottom: 0.5rem; }

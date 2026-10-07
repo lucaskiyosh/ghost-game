@@ -24,6 +24,30 @@ const TEXTOS = {
         conferindo: "Conferindo…",
         entrou: (w) => `"${w}" entrou no dicionário. Obrigado!`,
         apagar: "apagar",
+        // desafio do dia
+        abaDaily: (n) => `Desafio do dia #${n}`,
+        abaPratica: "Prática",
+        nomesNivel: { facil: "Fácil", medio: "Médio", dificil: "Difícil" },
+        roundSuaVez: (r, nivel, l) => `Round ${r} de 3 · ${nivel}. A IA começou com "${l}". Sua vez.`,
+        roundVoceVenceu: (r) => `Você ganhou o round ${r}!`,
+        roundIaVenceu: (r) => `A IA ganhou o round ${r}.`,
+        proximoRound: "Próximo round",
+        verResultado: "Ver resultado",
+        placar: (v, ia) => `Você ${v} × ${ia} IA`,
+        streak: (n) => `🔥 Sequência: ${n} ${n === 1 ? "dia" : "dias"}`,
+        proximoDesafio: (h, m) => `Próximo desafio em ${h}h ${String(m).padStart(2, "0")}min`,
+        compartilhar: "Compartilhar",
+        copiado: "Copiado! Cole onde quiser.",
+        modoPratica: "Modo prática",
+        praticaStatus: "Modo prática: não conta para o desafio do dia. Sua vez.",
+        shareStreak: (n) => `🔥 ${n} ${n === 1 ? "dia" : "dias"}`,
+        provocacoes: {
+            0: ["Vamos fingir que isso nunca aconteceu.", "Eu esperava mais de você.",
+                "Foi você que escolheu jogar contra mim.", "3 rodadas e você ainda não conseguiu? 😭"],
+            1: ["Quase. Mas quase não conta.", "Um round. Que fofo."],
+            2: ["Você teve sorte.", "Aproveita. Amanhã eu não erro."],
+            3: ["…Isso não aconteceu.", "Tá. Hoje foi seu dia. Amanhã eu volto."],
+        },
     },
     en: {
         carregando: "Loading dictionary…",
@@ -47,6 +71,29 @@ const TEXTOS = {
         conferindo: "Checking…",
         entrou: (w) => `"${w}" was added to the dictionary. Thanks!`,
         apagar: "delete",
+        abaDaily: (n) => `Daily #${n}`,
+        abaPratica: "Practice",
+        nomesNivel: { facil: "Easy", medio: "Medium", dificil: "Hard" },
+        roundSuaVez: (r, nivel, l) => `Round ${r} of 3 · ${nivel}. The AI opened with "${l}". Your turn.`,
+        roundVoceVenceu: (r) => `You won round ${r}!`,
+        roundIaVenceu: (r) => `The AI won round ${r}.`,
+        proximoRound: "Next round",
+        verResultado: "See result",
+        placar: (v, ia) => `You ${v} × ${ia} AI`,
+        streak: (n) => `🔥 ${n}-day streak`,
+        proximoDesafio: (h, m) => `Next challenge in ${h}h ${String(m).padStart(2, "0")}m`,
+        compartilhar: "Share",
+        copiado: "Copied! Paste it anywhere.",
+        modoPratica: "Practice mode",
+        praticaStatus: "Practice mode: doesn't count for the daily. Your turn.",
+        shareStreak: (n) => `🔥 ${n} ${n === 1 ? "day" : "days"}`,
+        provocacoes: {
+            0: ["Let's pretend that never happened.", "I expected more from you.",
+                "You chose to play against me.", "3 rounds and still nothing? 😭"],
+            1: ["Close. But close doesn't count.", "One round. How cute."],
+            2: ["You got lucky.", "Enjoy it. I won't miss tomorrow."],
+            3: ["…That didn't happen.", "Fine. Today was your day. I'll be back tomorrow."],
+        },
     },
 };
 const T = TEXTOS[LANG];
@@ -83,7 +130,16 @@ if (GOATCOUNTER) {
     });
 }
 
-const nivelAtual = () => document.getElementById("nivel").value;
+// "pratica" (jogo livre) ou "daily" (desafio do dia, em docs/daily.js)
+let modo = "pratica";
+let nivelDaily = "facil";
+const nivelAtual = () => modo === "daily" ? nivelDaily : document.getElementById("nivel").value;
+
+// ganchos que o docs/daily.js preenche
+let aoEncerrar = null;   // (resultado) => void, no fim de cada partida
+let aoNovo = null;       // botão "Novo jogo"
+let aoRender = null;     // depois de cada render (salvar tabuleiro, indicador de rounds)
+let aoIniciar = null;    // motor pronto: decide o modo inicial
 
 let engine;
 let prefix = "";
@@ -123,14 +179,14 @@ function nivelSalvo() {
     return "facil";
 }
 
-function aplicarNivel(nome) {
+function aplicarNivel(nome, salvar = true) {
     const n = NIVEIS[nome];
     engine.set_depth(n.depth);
     engine.set_vocabulary(n.vocab);
     engine.set_creativity(n.creativity);
     engine.set_bluff(n.bluff);
     engine.set_attention(n.attention);
-    try { localStorage.setItem("ghost-nivel", nome); } catch (e) {}
+    if (salvar) try { localStorage.setItem("ghost-nivel", nome); } catch (e) {}
 }
 
 // precisa existir antes do ghost.js carregar
@@ -143,8 +199,10 @@ var Module = {
         }
         el("nivel").value = nivelSalvo();
         aplicarNivel(el("nivel").value);
-        novoJogo();
-        if (!guiaJaVisto()) abrirGuia(true);
+        const primeiraVisita = !guiaJaVisto();
+        if (aoIniciar) aoIniciar(primeiraVisita);
+        else novoJogo();
+        if (primeiraVisita) abrirGuia(true);
         carregarExtras();
     }
 };
@@ -185,6 +243,7 @@ function render(pulo = false) {
     el("desafiar").disabled = !suaVez || prefix === "";
     el("teclado").classList.toggle("desligado", fim);
     el("adicionar").hidden = !(temServidor && fim && recusada);
+    if (aoRender) aoRender();
 }
 
 function montarTeclado() {
@@ -242,9 +301,11 @@ function encerrar(msg, resultado, motivo) {
     pendente = "";
     status = msg;
     render();
+    if (aoEncerrar) aoEncerrar(resultado);
 }
 
-function novoJogo() {
+// letraInicial: lance de abertura da IA (desafio do dia); sem ela, você começa
+function novoJogo(letraInicial = "", msg = T.suaVez) {
     prefix = "";
     autor = [];
     pendente = "";
@@ -253,7 +314,8 @@ function novoJogo() {
     desenhados = 0;
     fim = false;
     defendendo = false;
-    status = T.suaVez;
+    if (letraInicial) acrescentar(letraInicial, "ia");
+    status = msg;
     render();
 }
 
@@ -429,7 +491,9 @@ render();
 el("desafiar").addEventListener("click", desafiar);
 
 el("novo").addEventListener("click", () => {
-    if (engine && engine.ready()) novoJogo();
+    if (!engine || !engine.ready()) return;
+    if (aoNovo) aoNovo();
+    else novoJogo();
 });
 
 el("nivel").addEventListener("change", (e) => {

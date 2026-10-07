@@ -5,6 +5,14 @@ Jogo **Ghost** contra uma IA, em português e em inglês. Cada jogador acrescent
 - Português: https://lucaskiyosh.github.io/ghost-game/
 - English: https://lucaskiyosh.github.io/ghost-game/en/
 
+## Desafio do dia
+
+Todo dia há um desafio novo, igual para todo mundo: 3 rounds contra a IA (Fácil → Médio → Difícil), cada um aberto pela IA com uma letra sorteada. No fim, a IA comenta o placar e dá para compartilhar o resultado (sem revelar as palavras). Tudo roda no navegador, sem servidor:
+
+- o número do dia (#1 = 6/10/2026) é a seed da letra de abertura e do sorteio da IA, então quem joga as mesmas letras recebe as mesmas respostas;
+- progresso, sequência (🔥 dias jogados seguidos) e estatísticas ficam no `localStorage`, separados por idioma;
+- a aba **Prática** é o jogo livre, com seletor de nível, e não conta para o desafio.
+
 ## Como funciona
 
 - **Dicionário:** double-array trie ([cedar](http://www.tkl.iis.u-tokyo.ac.jp/~ynaga/cedar/)); cada palavra guarda seu ranking de frequência.
@@ -42,3 +50,5 @@ Além das visitas, o jogo envia eventos com prefixo `pt/` ou `en/`:
 | `desafio/jogador`, `desafio/ia` | alguém desafiou |
 | `guia/abriu-auto`, `guia/abriu-manual`, `guia/concluido`, `guia/fechou-no-passo-<n>` | uso do guia |
 | `nivel/<nível>`, `idioma/para-<en\|pt>` | trocas de nível e idioma |
+| `daily/inicio`, `daily/round/<n>/<voce\|ia>`, `daily/fim/<v>x<ia>` | desafio do dia |
+| `daily/compartilhar`, `modo/pratica` | compartilhou o resultado; entrou na prática |
