@@ -145,6 +145,27 @@ function evento(nome) {
     } catch (e) {}
 }
 
+// etapas do funil: cada uma é enviada no máximo uma vez por visita (carregamento da página),
+// para os números do painel poderem ser comparados entre si
+const etapasEnviadas = new Set();
+function funil(etapa) {
+    if (etapasEnviadas.has(etapa)) return;
+    etapasEnviadas.add(etapa);
+    evento(`funil/${etapa}`);
+}
+
+// quem chegou por um resultado compartilhado (link com ?utm_campaign=share)
+const PARAMETROS = new URLSearchParams(location.search);
+if (PARAMETROS.get("utm_campaign") === "share") evento("visita/via-compartilhamento");
+
+// tira o ?utm_campaign=share da barra (depois que o GoatCounter já leu), para não ser repassado
+function limparParametroShare() {
+    if (!PARAMETROS.has("utm_campaign")) return;
+    try { history.replaceState(null, "", location.pathname + location.hash); } catch (e) {}
+}
+
+if (!GOATCOUNTER) limparParametroShare();
+
 if (GOATCOUNTER) {
     // conta a visita sozinho; em localhost o count.js não envia nada
     const s = document.createElement("script");
@@ -153,7 +174,9 @@ if (GOATCOUNTER) {
     s.dataset.goatcounter = `https://${GOATCOUNTER}.goatcounter.com/count`;
     s.onload = () => {
         try { while (filaEventos.length) window.goatcounter.count(filaEventos.shift()); } catch (e) {}
+        limparParametroShare();
     };
+    s.onerror = limparParametroShare;      // bloqueador de anúncios
     document.head.append(s);
     document.addEventListener("DOMContentLoaded", () => {
         const aviso = document.getElementById("aviso-metricas");
@@ -224,6 +247,7 @@ function aplicarNivel(nome, salvar = true) {
 var Module = {
     onRuntimeInitialized() {
         engine = new Module.GhostEngine();
+        funil("1-abriu");
         if (!engine.ready()) {
             status = T.erroDicionario;
             return render();
@@ -325,8 +349,13 @@ document.addEventListener("keydown", (e) => {
 // ---------- jogo ----------
 
 // resultado ("vitoria"/"derrota") e motivo vão para as métricas
+let terminouAlguma = false;     // alguma partida já acabou nesta visita (para medir revanche)
+let jogouNestaPartida = false;  // você já colocou uma letra nesta partida
+
 function encerrar(msg, resultado, motivo) {
     evento(`fim/${resultado}/${motivo}/${nivelAtual()}`);
+    funil("3-terminou");
+    terminouAlguma = true;
     fim = true;
     defendendo = false;
     pendente = "";
@@ -345,6 +374,8 @@ function novoJogo(letraInicial = "", msg = T.suaVez) {
     desenhados = 0;
     fim = false;
     defendendo = false;
+    jogouNestaPartida = false;
+    if (terminouAlguma) funil("4-revanche");
     if (letraInicial) acrescentar(letraInicial, "ia");
     status = msg;
     render();
@@ -363,7 +394,10 @@ function jogar(letra) {
     if (fim || defendendo || !letra) return;
 
     pendente = "";
-    if (prefix === "") evento(`partida/inicio/${nivelAtual()}`);
+    // conta o início na sua 1ª letra (no round 2 do desafio a IA abre, então o tabuleiro não está vazio)
+    if (!jogouNestaPartida) evento(`partida/inicio/${nivelAtual()}`);
+    jogouNestaPartida = true;
+    funil("2-primeira-jogada");
     const antesValido = engine.check(prefix) !== Module.WordState.invalido;
     acrescentar(letra, "voce");
     if (antesValido && engine.check(prefix) === Module.WordState.invalido) evento("blefe/jogador");

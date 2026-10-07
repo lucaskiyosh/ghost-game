@@ -10,9 +10,10 @@ const QUEM_ABRE = ["voce", "ia", "voce"];
 const ABERTURAS = LANG === "pt" ? "cmpsadtrbefglnov" : "sctpbmdafrhwlgei";
 const CHAVE_DAILY = `ghost-daily-${LANG}`;
 const CHAVE_STATS = `ghost-stats-${LANG}`;
-const URL_JOGO = LANG === "pt"
+// o parâmetro de campanha faz o GoatCounter mostrar em "Campaigns" quem veio por um compartilhamento
+const URL_JOGO = (LANG === "pt"
     ? "https://lucaskiyosh.github.io/ghost-game/"
-    : "https://lucaskiyosh.github.io/ghost-game/en/";
+    : "https://lucaskiyosh.github.io/ghost-game/en/") + "?utm_campaign=share";
 
 function numeroDoDia(agora = new Date()) {
     const hoje = Date.UTC(agora.getFullYear(), agora.getMonth(), agora.getDate());
@@ -123,6 +124,7 @@ aoEncerrar = (resultado) => {
     if (dailyTerminou()) {
         registrarEstatisticas();
         evento(`daily/fim/${vitorias()}x${3 - vitorias()}`);
+        funil("5-daily-completo");
         // abre sozinho, só depois da animação do último tile
         resultadoPendente = true;
         setTimeout(abrirResultado, 500);
@@ -341,6 +343,7 @@ el("resultado").addEventListener("close", () => {
 el("res-compartilhar").addEventListener("click", async () => {
     const texto = textoCompartilhar();
     evento("daily/compartilhar");
+    funil("6-compartilhou");
     if (navigator.share) {
         try { await navigator.share({ text: texto }); return; } catch (e) {
             if (e && e.name === "AbortError") return;    // a pessoa cancelou
@@ -357,3 +360,19 @@ el("res-pratica").addEventListener("click", () => {
     el("resultado").close();
     entrarPratica();
 });
+
+// ---------- retorno (retenção sem identificar ninguém) ----------
+
+// uma vez por visita: nova, ou voltou depois de quanto tempo (comum aos dois idiomas)
+(function marcarVisita() {
+    const hoje = numeroDoDia();
+    const ultima = ler("ghost-ultima-visita", null);
+    if (ultima === null) {
+        evento("visita/nova");
+        gravar("ghost-primeira-visita", hoje);
+    } else {
+        const dias = hoje - ultima;
+        evento(`visita/retorno/${dias <= 0 ? "mesmo-dia" : dias === 1 ? "1-dia" : dias <= 7 ? "2-7-dias" : "8+-dias"}`);
+    }
+    gravar("ghost-ultima-visita", hoje);
+})();

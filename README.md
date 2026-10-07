@@ -52,3 +52,8 @@ Além das visitas, o jogo envia eventos com prefixo `pt/` ou `en/`:
 | `nivel/<nível>`, `idioma/para-<en\|pt>` | trocas de nível e idioma |
 | `daily/inicio`, `daily/round/<n>/<voce\|ia>`, `daily/fim/<v>x<ia>` | desafio do dia |
 | `daily/compartilhar`, `modo/pratica` | compartilhou o resultado; entrou na prática |
+| `funil/1-abriu` … `funil/6-compartilhou` | etapas do funil (abriu, primeira jogada, terminou, revanche, daily completo, compartilhou), **no máximo uma vez por visita** |
+| `visita/nova`, `visita/retorno/<mesmo-dia\|1-dia\|2-7-dias\|8+-dias>` | primeira visita ou retorno, pela distância desde a última |
+| `visita/via-compartilhamento` | chegou por um link compartilhado (`?utm_campaign=share`, também em "Campaigns") |
+
+Como ler: compare as etapas `funil/*` entre si (ex.: quantos dos que abriram chegaram a jogar). O total de "visits" do painel soma páginas **e** eventos, então não é o número de pessoas; para isso, olhe os visitantes da página `/ghost-game/` (e `/ghost-game/en/`).
