@@ -14,6 +14,7 @@
     <header>
         <div class="cantos">
             <button class="ajuda" id="abrir-regras" aria-label="How to play">?</button>
+            <button class="ajuda" id="abrir-progresso" aria-label="See progress"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 20h3V10H4v10zm6.5 0h3V4h-3v16zM17 20h3v-7h-3v7z"/></svg></button>
         </div>
         <h1>Ghost</h1>
         <div class="cantos">
@@ -82,18 +83,45 @@
         </div>
     </dialog>
 
-    <dialog id="resultado" aria-labelledby="res-titulo">
-        <h2 id="res-titulo"></h2>
-        <div id="res-rounds" class="res-rounds"></div>
-        <p id="res-placar" class="res-placar"></p>
-        <p id="res-provocacao" class="provocacao"></p>
-        <p id="res-streak"></p>
-        <div class="linha-botoes">
-            <button type="button" id="res-compartilhar"></button>
-            <button type="button" class="secundario" id="res-pratica"></button>
+    <dialog id="resultado" aria-labelledby="res-ia-rotulo">
+        <section id="res-hoje">
+            <div class="fala-ia">
+                <div class="avatar-ia" aria-hidden="true">👻</div>
+                <div class="fala-corpo">
+                    <p id="res-ia-rotulo" class="fala-rotulo"></p>
+                    <div class="balao">
+                        <p id="res-fala" class="fala-principal"></p>
+                        <p id="res-fala2" class="fala-segunda"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="hoje">
+                <span id="res-titulo" class="hoje-titulo"></span>
+                <span id="res-rounds" class="res-rounds"></span>
+                <span id="res-placar" class="res-placar"></span>
+            </div>
+        </section>
+
+        <h3 id="res-progresso-titulo" class="res-secao"></h3>
+        <div class="stats">
+            <div><span id="st-jogos" class="stat-num"></span><span id="st-jogos-rot" class="stat-rot"></span></div>
+            <div><span id="st-pct" class="stat-num"></span><span id="st-pct-rot" class="stat-rot"></span></div>
+            <div><span id="st-seq" class="stat-num"></span><span id="st-seq-rot" class="stat-rot"></span></div>
+            <div><span id="st-max" class="stat-num"></span><span id="st-max-rot" class="stat-rot"></span></div>
+        </div>
+
+        <h3 id="res-dist-titulo" class="res-secao"></h3>
+        <div id="res-dist" class="distribuicao"></div>
+
+        <div class="rodape-resultado">
+            <div class="contagem-bloco">
+                <span id="res-proximo-rot" class="stat-rot"></span>
+                <span id="res-proximo" class="contagem"></span>
+            </div>
+            <button type="button" id="res-compartilhar" class="compartilhe"><span id="res-compartilhar-txt"></span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7c0 .3 0 .5.1.8L8.4 11.2a3 3 0 1 0 0 3.6l6.7 3.4A3 3 0 1 0 18 16z"/></svg></button>
         </div>
         <p id="res-copiado" class="fonte" aria-live="polite" hidden></p>
-        <p id="res-proximo" class="fonte"></p>
+        <button type="button" class="link" id="res-pratica"></button>
     </dialog>
 
     <script src="../main.js"></script>

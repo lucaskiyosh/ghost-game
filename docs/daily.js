@@ -94,12 +94,13 @@ function retomarRound() {
 }
 
 function registrarEstatisticas() {
-    const s = ler(CHAVE_STATS, { jogados: 0, vencidos: 0, streak: 0, maxStreak: 0, ultimoDia: 0 });
+    const s = lerStats();
     if (s.ultimoDia === daily.dia) return s;          // já contado hoje
     s.streak = s.ultimoDia === daily.dia - 1 ? s.streak + 1 : 1;
     s.maxStreak = Math.max(s.maxStreak, s.streak);
     s.jogados += 1;
     if (vitorias() >= 2) s.vencidos += 1;
+    s.placares[placarHoje()] += 1;
     s.ultimoDia = daily.dia;
     gravar(CHAVE_STATS, s);
     return s;
@@ -115,7 +116,10 @@ aoEncerrar = (resultado) => {
     gravar(CHAVE_DAILY, daily);
     evento(`daily/round/${r}/${quem}`);
 
-    status = `${status} ${quem === "voce" ? T.roundVoceVenceu(r) : T.roundIaVenceu(r)}`;
+    // a IA comenta o round (mesma fala para todo mundo no dia)
+    const falas = quem === "voce" ? T.falaRoundGanhou : T.falaRoundPerdeu;
+    const fala = falas[Math.floor(mulberry32(daily.dia * 97 + r)() * falas.length)];
+    status = `${status} ${quem === "voce" ? T.roundVoceVenceu(r) : T.roundIaVenceu(r)} 👻 "${fala}"`;
     if (dailyTerminou()) {
         registrarEstatisticas();
         evento(`daily/fim/${vitorias()}x${3 - vitorias()}`);
@@ -196,19 +200,33 @@ el("aba-pratica").addEventListener("click", entrarPratica);
 // motor pronto: começa no desafio do dia
 aoIniciar = () => entrarDaily();
 
-// ---------- resultado ----------
+// ---------- progresso (resultado do dia + estatísticas, no estilo do term.ooo) ----------
 
-function provocacao() {
-    return T.provocacoes[vitorias()];
+const PLACARES = ["3x0", "2x1", "1x2", "0x3"];
+const placarHoje = () => `${vitorias()}x${3 - vitorias()}`;
+const falaIa = () => T.provocacoes[vitorias()];      // [frase principal, segunda linha]
+
+function lerStats() {
+    const s = ler(CHAVE_STATS, null) || { jogados: 0, vencidos: 0, streak: 0, maxStreak: 0, ultimoDia: 0 };
+    if (!s.placares) {
+        // estatísticas antigas não tinham a distribuição: começa do zero, contando o dia de hoje
+        s.placares = { "3x0": 0, "2x1": 0, "1x2": 0, "0x3": 0 };
+        if (daily && s.ultimoDia === daily.dia && dailyTerminou()) s.placares[placarHoje()] += 1;
+        gravar(CHAVE_STATS, s);
+    }
+    return s;
 }
 
-function textoCompartilhar(streak) {
+// a sequência só vale se o último dia jogado foi hoje ou ontem
+const sequenciaAtual = (s) => (s.ultimoDia >= numeroDoDia() - 1 ? s.streak : 0);
+
+function textoCompartilhar() {
+    const [fala, fala2] = falaIa();
     return [
-        `👻 GHOST #${daily.dia}`,
-        ...daily.rounds.map((r, i) => `${r === "voce" ? "🟢" : "🔴"} Round ${i + 1}`),
-        T.placar(vitorias(), 3 - vitorias()),
-        `"${provocacao()}"`,
-        T.shareStreak(streak),
+        `👻 GHOST #${daily.dia} · ${T.placar(vitorias(), 3 - vitorias())}`,
+        daily.rounds.map((r) => (r === "voce" ? "🟢" : "🔴")).join(""),
+        T.shareIa(`${fala} ${fala2}`),
+        T.shareSequencia(sequenciaAtual(lerStats())),
         URL_JOGO,
     ].join("\n");
 }
@@ -216,45 +234,111 @@ function textoCompartilhar(streak) {
 function atualizarContagem() {
     const agora = new Date();
     const amanha = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1);
-    const min = Math.max(0, Math.ceil((amanha - agora) / 60000));
-    el("res-proximo").textContent = T.proximoDesafio(Math.floor(min / 60), min % 60);
+    const seg = Math.max(0, Math.floor((amanha - agora) / 1000));
+    const dois = (n) => String(n).padStart(2, "0");
+    el("res-proximo").textContent = `${dois(Math.floor(seg / 3600))}:${dois(Math.floor(seg / 60) % 60)}:${dois(seg % 60)}`;
+}
+
+// a fala principal aparece letra por letra, como se a IA estivesse digitando
+let digitando = null;
+function digitar(alvo, texto) {
+    clearTimeout(digitando);
+    const letras = Array.from(texto);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        alvo.textContent = texto;
+        return;
+    }
+    let i = 0;
+    alvo.textContent = "";
+    const passo = () => {
+        alvo.textContent = letras.slice(0, ++i).join("");
+        if (i < letras.length) digitando = setTimeout(passo, 35);
+    };
+    passo();
+}
+
+function preencherDistribuicao(s, destacar) {
+    const max = Math.max(1, ...PLACARES.map((k) => s.placares[k]));
+    el("res-dist").replaceChildren(...PLACARES.map((k) => {
+        const linha = document.createElement("div");
+        linha.className = "dist-linha";
+        const rotulo = document.createElement("span");
+        rotulo.className = "dist-rotulo";
+        rotulo.textContent = k.replace("x", " × ");
+        const barra = document.createElement("span");
+        const n = s.placares[k];
+        barra.className = "barra" + (n === 0 ? " zero" : "") + (k === destacar ? " hoje" : "");
+        barra.style.width = n === 0 ? "" : `max(1.8rem, ${(n / max) * 100}%)`;
+        barra.textContent = n;
+        linha.append(rotulo, barra);
+        return linha;
+    }));
 }
 
 let relogio = null;
 
-function abrirResultado() {
+function abrirProgresso() {
     resultadoPendente = false;
-    if (el("resultado").open || !dailyTerminou()) return;
-    const s = ler(CHAVE_STATS, { streak: 1 });
-    el("res-titulo").textContent = `👻 GHOST #${daily.dia}`;
-    el("res-rounds").replaceChildren(...daily.rounds.map((r, i) => {
-        const d = document.createElement("div");
-        d.className = "res-round " + r;
-        d.textContent = `Round ${i + 1}`;
-        return d;
-    }));
-    el("res-placar").textContent = T.placar(vitorias(), 3 - vitorias());
-    el("res-provocacao").textContent = `“${provocacao()}”`;
-    el("res-streak").textContent = T.streak(s.streak);
-    el("res-copiado").hidden = true;
-    el("res-compartilhar").textContent = T.compartilhar;
+    if (el("resultado").open) return;
+    const terminou = modo === "daily" ? dailyTerminou() : (carregarDaily(), dailyTerminou());
+    const s = lerStats();
+
+    // hoje: a fala da IA em destaque, os rounds e o placar (só depois de terminar o desafio)
+    el("res-hoje").hidden = !terminou;
+    el("res-compartilhar").hidden = !terminou;
+    if (terminou) {
+        const [fala, fala2] = falaIa();
+        el("res-ia-rotulo").textContent = T.iaAchou;
+        el("res-fala2").textContent = fala2;
+        el("res-titulo").textContent = `GHOST #${daily.dia}`;
+        el("res-rounds").textContent = daily.rounds.map((r) => (r === "voce" ? "🟢" : "🔴")).join("");
+        el("res-placar").textContent = T.placar(vitorias(), 3 - vitorias());
+        digitar(el("res-fala"), fala);
+    }
+
+    el("res-progresso-titulo").textContent = T.progresso;
+    el("st-jogos").textContent = s.jogados;
+    el("st-pct").textContent = `${s.jogados ? Math.round((s.vencidos / s.jogados) * 100) : 0}%`;
+    el("st-seq").textContent = sequenciaAtual(s);
+    el("st-max").textContent = s.maxStreak;
+    el("st-jogos-rot").textContent = T.jogos;
+    el("st-pct-rot").textContent = T.deVitorias;
+    el("st-seq-rot").textContent = T.sequencia;
+    el("st-max-rot").textContent = T.melhorSequencia;
+    el("res-dist-titulo").textContent = T.distribuicao;
+    preencherDistribuicao(s, terminou ? placarHoje() : "");
+
+    el("res-proximo-rot").textContent = T.proximoEm;
+    el("res-compartilhar-txt").textContent = T.compartilhar;
     el("res-pratica").textContent = T.modoPratica;
+    el("res-pratica").hidden = modo === "pratica";
+    el("res-copiado").hidden = true;
+
     atualizarContagem();
     clearInterval(relogio);
-    relogio = setInterval(atualizarContagem, 30000);
+    relogio = setInterval(atualizarContagem, 1000);
     el("resultado").showModal();
     render();
 }
 
-// fecha só com Esc ou "Modo prática" (clicar fora fechava sem querer no celular);
+// usado pelo fim do desafio e pelo botão "Ver resultado"
+function abrirResultado() {
+    if (dailyTerminou()) abrirProgresso();
+    else resultadoPendente = false;
+}
+
+el("abrir-progresso").addEventListener("click", abrirProgresso);
+
+// fecha só com Esc ou "modo prática" (clicar fora fechava sem querer no celular);
 // depois de fechado, o botão "Ver resultado" reabre
 el("resultado").addEventListener("close", () => {
     clearInterval(relogio);
+    clearTimeout(digitando);
     render();
 });
 
 el("res-compartilhar").addEventListener("click", async () => {
-    const texto = textoCompartilhar(ler(CHAVE_STATS, { streak: 1 }).streak);
+    const texto = textoCompartilhar();
     evento("daily/compartilhar");
     if (navigator.share) {
         try { await navigator.share({ text: texto }); return; } catch (e) {

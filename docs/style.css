@@ -253,13 +253,90 @@ dialog .fonte { font-size: 0.9rem; opacity: 0.9; }
 .rounds span.voce { background: var(--ia); border-color: var(--ia); }
 .rounds span.ia { background: #c4554d; border-color: #c4554d; }
 
-/* resultado do dia */
-#resultado { text-align: center; }
-#resultado h2 { font-size: 1.6rem; }
-.res-rounds { display: flex; gap: 0.4rem; justify-content: center; margin-bottom: 0.75rem; }
-.res-round { padding: 0.35rem 0.7rem; border-radius: 0.4rem; font-weight: 600; }
-.res-round.voce { background: var(--ia); }
-.res-round.ia { background: #c4554d; }
-.res-placar { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem; }
-.provocacao { font-size: 1.15rem; font-style: italic; }
-#resultado .linha-botoes { justify-content: center; margin-bottom: 0.5rem; }
+/* progresso: resultado do dia + estatísticas (no estilo do term.ooo) */
+#resultado {
+    background: var(--escuro);
+    border-color: var(--escuro);
+    width: min(30rem, calc(100vw - 2rem));
+    max-width: none;
+    text-align: center;
+}
+
+/* a fala da IA é a peça principal */
+.fala-ia { display: flex; gap: 0.75rem; align-items: flex-end; text-align: left; margin-bottom: 0.9rem; }
+.avatar-ia {
+    flex: none;
+    width: 3.2rem; height: 3.2rem;
+    border-radius: 50%;
+    background: var(--ia);
+    display: grid; place-items: center;
+    font-size: 1.9rem;
+}
+.fala-corpo { min-width: 0; flex: 1; }
+.fala-rotulo { margin: 0 0 0.35rem; font-size: 0.85rem; opacity: 0.8; }
+.balao {
+    position: relative;
+    background: var(--texto);
+    color: var(--escuro);
+    border-radius: 1rem 1rem 1rem 0.25rem;
+    padding: 0.8rem 1rem;
+}
+/* rabicho apontando para o fantasma */
+.balao::before {
+    content: "";
+    position: absolute;
+    left: -0.5rem; bottom: 0;
+    border: 0.5rem solid transparent;
+    border-right-color: var(--texto);
+    border-bottom-color: var(--texto);
+}
+.fala-principal { margin: 0; font-size: clamp(1.25rem, 5.2vw, 1.6rem); font-weight: 600; line-height: 1.2; min-height: 1.2em; }
+.fala-segunda { margin: 0.4rem 0 0; font-size: 0.95rem; line-height: 1.35; }
+
+.hoje { display: flex; gap: 0.6rem; justify-content: center; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.4rem; }
+.hoje-titulo { font-weight: 600; opacity: 0.8; }
+.res-rounds { letter-spacing: 0.15rem; }
+.res-placar { font-weight: 600; font-size: 1.1rem; }
+
+.res-secao { margin: 1rem 0 0.6rem; font-size: 1.05rem; font-weight: 600; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem; }
+.stats > div { display: flex; flex-direction: column; align-items: center; }
+.stat-num { font-size: clamp(1.6rem, 7vw, 2.1rem); font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat-rot { font-size: 0.78rem; line-height: 1.2; opacity: 0.85; }
+
+.distribuicao { display: flex; flex-direction: column; gap: 0.3rem; text-align: left; }
+.dist-linha { display: flex; align-items: center; gap: 0.5rem; }
+.dist-rotulo { flex: none; width: 2.8rem; font-weight: 600; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.barra {
+    background: var(--ia);
+    border-radius: 0.2rem;
+    padding: 0.1rem 0.45rem;
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.barra.zero { background: var(--borda); width: 1.8rem; text-align: center; }
+.barra.hoje { background: var(--voce); color: var(--escuro); }
+
+.rodape-resultado {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+}
+.contagem-bloco { display: flex; flex-direction: column; align-items: center; }
+.contagem { font-size: 1.8rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+dialog button.compartilhe {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--ia);
+    padding: 0.7rem 1.2rem;
+    font-size: 1.05rem;
+}
+dialog button.link {
+    background: none;
+    padding: 0.4rem;
+    margin-top: 0.6rem;
+    text-decoration: underline;
+    font-weight: 400;
+    opacity: 0.85;
+}
