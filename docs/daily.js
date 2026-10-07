@@ -328,6 +328,7 @@ function abrirResultado() {
 }
 
 el("abrir-progresso").addEventListener("click", abrirProgresso);
+el("res-fechar").addEventListener("click", () => el("resultado").close());
 
 // fecha só com Esc ou "modo prática" (clicar fora fechava sem querer no celular);
 // depois de fechado, o botão "Ver resultado" reabre

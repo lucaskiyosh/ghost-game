@@ -255,6 +255,8 @@ dialog .fonte { font-size: 0.9rem; opacity: 0.9; }
 
 /* progresso: resultado do dia + estatísticas (no estilo do term.ooo) */
 #resultado {
+    position: relative;
+    padding-top: 2.6rem;           /* espaço para o ✕ */
     background: var(--escuro);
     border-color: var(--escuro);
     width: min(30rem, calc(100vw - 2rem));
@@ -308,15 +310,30 @@ dialog .fonte { font-size: 0.9rem; opacity: 0.9; }
 .distribuicao { display: flex; flex-direction: column; gap: 0.3rem; text-align: left; }
 .dist-linha { display: flex; align-items: center; gap: 0.5rem; }
 .dist-rotulo { flex: none; width: 2.8rem; font-weight: 600; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+/* botão de fechar do progresso: sempre visível (no celular não há Esc) */
+dialog button.fechar {
+    position: absolute;
+    top: 0.6rem; right: 0.6rem;
+    width: 2rem; height: 2rem;
+    padding: 0;
+    border-radius: 50%;
+    border: 0.125em solid var(--borda);
+    background: transparent;
+    font-size: 0.95rem;
+    line-height: 1;
+}
 .barra {
     background: var(--ia);
     border-radius: 0.2rem;
-    padding: 0.1rem 0.45rem;
-    text-align: right;
+    height: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 0.45rem;
     font-weight: 600;
     font-size: 0.85rem;
 }
-.barra.zero { background: var(--borda); width: 1.8rem; text-align: center; }
+.barra.zero { background: var(--borda); width: 1.8rem; justify-content: center; }
 .barra.hoje { background: var(--voce); color: var(--escuro); }
 
 .rodape-resultado {

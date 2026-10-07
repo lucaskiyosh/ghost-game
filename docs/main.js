@@ -107,7 +107,7 @@ const TEXTOS = {
         iaAchou: "what the AI thinks of you:",
         progresso: "progress",
         jogos: "played",
-        deVitorias: "win %",
+        deVitorias: "win rate",
         sequencia: "streak",
         melhorSequencia: "best streak",
         distribuicao: "score distribution",
